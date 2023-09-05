@@ -1,0 +1,28 @@
+{
+  "name": "js-serial-web",
+  "version": "0.0.1",
+  "main": "./dist/js-serial-web.umd.js",
+  "module": "./dist/js-serial-web.js",
+  "exports": {
+    ".": {
+      "import": "./dist/js-serial-web.js",
+      "require": "./dist/js-serial-web.umd.js"
+    }
+  },
+  "types": "./dist/js-serial-web.d.ts",
+  "files": [
+    "/dist"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "watch": "concurrently \"tsc --watch\" \"vite build --watch\"",
+    "prepare": "npm run build"
+  },
+  "devDependencies": {
+    "@types/w3c-web-serial": "^1.0.3",
+    "concurrently": "^7.6.0",
+    "typescript": "^4.3.2",
+    "vite": "^2.6.4"
+  }
+}
