@@ -9,15 +9,15 @@ export type devicePortType = object /* SerialPort */
 export type compareKeyType = string | devicePortType
 export type deviceKeyPortInfoType = {
     key:compareKeyType,
-    portInfo:portInfoType,
-    portObj?:devicePortType
+    info:portInfoType,
+    port?:devicePortType
 }
 
-export type idIndexedObjType = {
+export type deviceKeyPortInfoAvailableType = {
     key:compareKeyType;
-    available:boolean;
-    port:devicePortType;
     info:portInfoType;
+    port:devicePortType;
+    available:boolean;
 }
 
 export class MicroStore<T> {
@@ -50,7 +50,7 @@ export class MicroStore<T> {
 export type GetDeviceKeyPortInfosFunction = () => Promise<deviceKeyPortInfoType[]>
 export type PromptGrantAccessFunction = (option:object/*createOption*/)=>Promise<devicePortType>
 export type CreatePortFunction = (path:string)=>devicePortType
-export type DeletePortFunction = (devicePort:idIndexedObjType)=>Promise<portInfoType>
+export type DeletePortFunction = (devicePort:deviceKeyPortInfoAvailableType)=>Promise<portInfoType>
 export type OpenPortFunction = (devicePort:devicePortType, option:any/*openOption*/)=>Promise<void>
 export type ClosePortFunction = (devicePort:devicePortType)=>Promise<void>
 

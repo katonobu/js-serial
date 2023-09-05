@@ -24,7 +24,7 @@ export class NodeMockSerialPort extends AbstructSerialPort{
         const infos = await SerialPortMock.list()
         const result = infos.map((info)=> ({
             key:info.path,
-            portInfo:{
+            info:{
                 id:-1,
                 pid:parseInt(info.productId??"0", 16),
                 vid:parseInt(info.vendorId??"0", 16),

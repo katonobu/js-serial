@@ -3,7 +3,7 @@ import {
     portInfoType, 
     compareKeyType, 
     deviceKeyPortInfoType ,
-    idIndexedObjType,    
+    deviceKeyPortInfoAvailableType,    
     MicroStore, 
     AbstructSerialPort
 } from './AbstructSerialPort'
@@ -22,7 +22,7 @@ export interface keyCompResultType{
 }
 
 export class PortManager{
-    private _idToObj:idIndexedObjType[] // 御本尊
+    private _idToObj:deviceKeyPortInfoAvailableType[] // 御本尊
     private _currentKeysCache:compareKeyType[] // 変化比較用Cache
     private _portStore:MicroStore<portStoreType>
     private _serialPort:AbstructSerialPort
@@ -45,7 +45,7 @@ export class PortManager{
         try {
             const newPort = await this._serialPort.promptGrantAccess(option)
             await this.updateRequest()
-            const matched:idIndexedObjType|undefined = this._idToObj.find((obj)=>obj.key===newPort)
+            const matched:deviceKeyPortInfoAvailableType|undefined = this._idToObj.find((obj)=>obj.key===newPort)
             return matched?.info ?? {id:-1, pid:-1, vid:-1}
         }catch(e) {
             console.log(e)
@@ -83,15 +83,15 @@ export class PortManager{
         let detachedIds:portIdType[] = []
         if (0 < attachedKeys.length){
             attachedKeys.forEach((key)=>{
-                const matched:idIndexedObjType|undefined = this._idToObj.find((obj)=>obj.key===key)
+                const matched:deviceKeyPortInfoAvailableType|undefined = this._idToObj.find((obj)=>obj.key===key)
 //                console.log(key, matched)
                 if (matched) {
                     // ポート復活。(node時のみ)
                     if (!matched.available) {
                         matched.available = true
                         const portKeyObjInfoFromKey = portKeyObjInfos.find((pkoi)=>pkoi.key===key)
-                        if (portKeyObjInfoFromKey && portKeyObjInfoFromKey.portInfo.portName) {
-                            matched.port = this._serialPort.createPort(portKeyObjInfoFromKey.portInfo.portName)
+                        if (portKeyObjInfoFromKey && portKeyObjInfoFromKey.info.portName) {
+                            matched.port = this._serialPort.createPort(portKeyObjInfoFromKey.info.portName)
                             attachedIds.push(matched.info.id)
                         } else {
                             // キーに対応するポートがない or port名が設定されていない
@@ -105,31 +105,31 @@ export class PortManager{
                     const portObjInfoFromKey = portKeyObjInfos.find((port)=>port.key===key)
                     // console.log(portObjInfoFromKey, newId)
                     if (portObjInfoFromKey){
-                        if(portObjInfoFromKey.portObj) {
+                        if(portObjInfoFromKey.port) {
                             // web-serial
                             this._idToObj.push({
                                 key,
                                 available:true,
-                                port:portObjInfoFromKey.portObj,
+                                port:portObjInfoFromKey.port,
                                 info:{
                                     id:newId,
-                                    pid:portObjInfoFromKey.portInfo.pid, 
-                                    vid:portObjInfoFromKey.portInfo.vid, 
-                                    portName:portObjInfoFromKey.portInfo.portName?? ""
+                                    pid:portObjInfoFromKey.info.pid, 
+                                    vid:portObjInfoFromKey.info.vid, 
+                                    portName:portObjInfoFromKey.info.portName?? ""
                                 }
                             })
                             attachedIds.push(newId)
-                        } else if (portObjInfoFromKey.portInfo.portName){
+                        } else if (portObjInfoFromKey.info.portName){
                             // node-serial
                             this._idToObj.push({
                                 key,
                                 available:true,
-                                port:this._serialPort.createPort(portObjInfoFromKey.portInfo.portName),
+                                port:this._serialPort.createPort(portObjInfoFromKey.info.portName),
                                 info:{
                                     id:newId,
-                                    pid:portObjInfoFromKey.portInfo.pid, 
-                                    vid:portObjInfoFromKey.portInfo.vid, 
-                                    portName:portObjInfoFromKey.portInfo.portName?? ""
+                                    pid:portObjInfoFromKey.info.pid, 
+                                    vid:portObjInfoFromKey.info.vid, 
+                                    portName:portObjInfoFromKey.info.portName?? ""
                                 }
                             })
                             attachedIds.push(newId)
@@ -146,7 +146,7 @@ export class PortManager{
         }
         if (0 < detachedKeys.length) {
             detachedKeys.forEach((key)=>{
-                const matched:idIndexedObjType|undefined = this._idToObj.find((obj)=>obj.key===key)
+                const matched:deviceKeyPortInfoAvailableType|undefined = this._idToObj.find((obj)=>obj.key===key)
                 if (matched) {
                     matched.available = false
                     detachedIds.push(matched.info.id)

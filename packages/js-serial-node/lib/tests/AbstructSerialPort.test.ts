@@ -55,10 +55,10 @@ describe("AbstructSerialPort", () => {
             const portStore = pm.getPorts()
             portStore.curr.forEach((obj, idx)=> {
                 expect(obj.id).toBe(idx)
-                const matchedDkpi = dkpis.filter((dkpi)=>dkpi.portInfo.portName === obj.portName)
+                const matchedDkpi = dkpis.filter((dkpi)=>dkpi.info.portName === obj.portName)
                 expect(matchedDkpi.length).toBe(1)
-                expect(matchedDkpi[0].portInfo.pid).toBe(obj.pid)
-                expect(matchedDkpi[0].portInfo.vid).toBe(obj.vid)
+                expect(matchedDkpi[0].info.pid).toBe(obj.pid)
+                expect(matchedDkpi[0].info.vid).toBe(obj.vid)
                 expect(portStore.attached.length).toBe(portStore.curr.length)
                 expect(portStore.attached[idx]).toBe(idx)
                 expect(portStore.detached.length).toBe(0)

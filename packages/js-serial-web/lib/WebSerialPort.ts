@@ -1,5 +1,5 @@
 import {
-    AbstructSerialPort, idIndexedObjType
+    AbstructSerialPort, deviceKeyPortInfoAvailableType
 } from "../../js-serial-core/lib/AbstructSerialPort";
 
 export class WebSerialPort extends AbstructSerialPort{
@@ -19,12 +19,12 @@ export class WebSerialPort extends AbstructSerialPort{
                 const portInfo = port.getInfo()
                 return {
                     key:port,
-                    portInfo:{
+                    info:{
                         id:-1,
                         pid:portInfo.usbProductId ?? 0,
                         vid:portInfo.usbVendorId ?? 0,
                     },
-                    portObj:port
+                    port
                 }
             })
     //            console.log(result)
@@ -42,7 +42,7 @@ export class WebSerialPort extends AbstructSerialPort{
     createPort = (path:string)=>{
         throw(new Error(`js-serial-web dosen't support createPort : ${path}`))
     }
-    deletePort = async (dp:idIndexedObjType) => {
+    deletePort = async (dp:deviceKeyPortInfoAvailableType) => {
         if (this.isNode) {
             throw(new Error("js-serial-web exected in node environment"))
         } else {
