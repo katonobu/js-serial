@@ -5,13 +5,9 @@ describe("Sample", () => {
   afterAll(async () => {
   });
 
-  it('sample test', async () => {
-    await page.waitForSelector('#counter')
-    let countValue = -1
-    countValue = parseInt((await page.$eval('#counter',(ele)=>ele.textContent)).replace('"','').split(" ")[2], 10)
-    expect(countValue).toBe(0)
-    await page.click('#counter')
-    countValue = parseInt((await page.$eval('#counter',(ele)=>ele.textContent)).replace('"','').split(" ")[2], 10)
-    expect(countValue).toBe(1)
+  it('check title', async () => {
+    await page.waitForSelector('#init')
+    const title = await page.title();
+    expect(title).toBe('js-serial-web test client');    
   }, 10 * 1000);
 });

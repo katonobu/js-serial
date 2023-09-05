@@ -13,6 +13,13 @@ export type deviceKeyPortInfoType = {
     portObj?:devicePortType
 }
 
+export type idIndexedObjType = {
+    key:compareKeyType;
+    available:boolean;
+    port:devicePortType;
+    info:portInfoType;
+}
+
 export class MicroStore<T> {
     private obj: T;
     private callbacks: Set<() => void>;
@@ -41,9 +48,9 @@ export class MicroStore<T> {
 }
 
 export type GetDeviceKeyPortInfosFunction = () => Promise<deviceKeyPortInfoType[]>
-export type PromptGrantAccessFunction = (option:object/*createOption*/)=>Promise<portInfoType>
+export type PromptGrantAccessFunction = (option:object/*createOption*/)=>Promise<devicePortType>
 export type CreatePortFunction = (path:string)=>devicePortType
-export type DeletePortFunction = (devicePort:devicePortType)=>Promise<portInfoType>
+export type DeletePortFunction = (devicePort:idIndexedObjType)=>Promise<portInfoType>
 export type OpenPortFunction = (devicePort:devicePortType, option:any/*openOption*/)=>Promise<void>
 export type ClosePortFunction = (devicePort:devicePortType)=>Promise<void>
 

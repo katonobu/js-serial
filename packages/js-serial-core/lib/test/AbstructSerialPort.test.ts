@@ -12,15 +12,15 @@ describe("AbstructSerialPort", () => {
         const ns = new NodeMockSerialPort()
         const pm = new PortManager(ns)
 
-        expect(pm.portStore.getCallbacksLen()).toBe(0)
-        let unsubscribe0 = pm.portStore.subscribe(()=>{})
-        expect(pm.portStore.getCallbacksLen()).toBe(1)
-        let unsubscribe1 = pm.portStore.subscribe(()=>{})
-        expect(pm.portStore.getCallbacksLen()).toBe(2)
+        expect(pm.getSubscribeCbLen()).toBe(0)
+        let unsubscribe0 = pm.subscribePorts(()=>{})
+        expect(pm.getSubscribeCbLen()).toBe(1)
+        let unsubscribe1 = pm.subscribePorts(()=>{})
+        expect(pm.getSubscribeCbLen()).toBe(2)
         unsubscribe1()
-        expect(pm.portStore.getCallbacksLen()).toBe(1)
+        expect(pm.getSubscribeCbLen()).toBe(1)
         unsubscribe0()
-        expect(pm.portStore.getCallbacksLen()).toBe(0)
+        expect(pm.getSubscribeCbLen()).toBe(0)
     })
 
     it("PortManager init", async () => {
@@ -48,7 +48,7 @@ describe("AbstructSerialPort", () => {
         await pm.init()
 
         const mockCallbackNotCalled = jest.fn()
-        let unsubscribe = pm.portStore.subscribe(mockCallbackNotCalled)
+        let unsubscribe = pm.subscribePorts(mockCallbackNotCalled)
         await pm.updateRequest()
         expect(mockCallbackNotCalled).toHaveBeenCalledTimes(0);
         unsubscribe()
@@ -60,7 +60,7 @@ describe("AbstructSerialPort", () => {
         await pm.init()
 
         const mockCallbackMayCalledOnce = jest.fn()
-        let unsubscribe = pm.portStore.subscribe(mockCallbackMayCalledOnce)
+        let unsubscribe = pm.subscribePorts(mockCallbackMayCalledOnce)
 
         NodeMockSerialPort.addPort()
         await pm.updateRequest()
@@ -81,7 +81,7 @@ describe("AbstructSerialPort", () => {
         await pm.init()
 
         const mockCallbackMayCalledOnce = jest.fn()
-        let unsubscribe = pm.portStore.subscribe(mockCallbackMayCalledOnce)
+        let unsubscribe = pm.subscribePorts(mockCallbackMayCalledOnce)
 
         NodeMockSerialPort.addPort()
         await pm.updateRequest()

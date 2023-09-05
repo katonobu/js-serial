@@ -2,12 +2,83 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <link rel="icon" href="/favicon.ico">
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite + TS</title>
+    <title>js-serial-web test client</title>
   </head>
   <body>
-    <div id="app"></div>
-    <script type="module" src="/src/main.ts"></script>
+    <div>
+      <h3>Port management </h3>
+        <h4>create option</h4>
+          <pre id="arg">{}</pre>
+        <h4>operation</h4>
+          <button id="init" type="button">Init</button>
+          <button id="update" type="button">Update</button>
+          <button id="create" type="button">Create</button>
+          <button id="get_ports" type="button">GetPorts</button>
+        <h4>current ports length</h4>
+          <pre id="portslen"></pre>
+      <h3>Each Port</h3>
+        <h4>open option</h4>
+          <!-- Start of Port Open option -->
+          <input id="use_open_option" type="checkbox">
+          <label for="use_open_option">Use open option</label>
+          <div id="additional-options" style="display: none;">
+            <label for="baudrate">Baud rate:</label>
+            <select id="baudrate">
+              <option value="9600">9600</option>
+              <option value="14400">14400</option>
+              <option value="19200">19220</option>
+              <option value="28800">28800</option>
+              <option value="38400">38400</option>
+              <option value="57600">57600</option>
+              <option value="115200" selected>115200</option>
+              <option value="230400">230400</option>
+              <option value="460800">460800</option>
+              <option value="921600">921600</option>
+              <option value="custom">Custom</option>
+            </select>
+            <input id="custom_baudrate" type="number" min="1" placeholder="Enter baudrate..." hidden>
+            <label for="databits">Data bits:</label>
+            <select id="databits">
+              <option value="7">7</option>
+              <option value="8" selected>8</option>
+            </select>
+            <label for="parity">Parity:</label>
+            <select id="parity">
+              <option value="none" selected>None</option>
+              <option value="even">Even</option>
+              <option value="odd">Odd</option>
+            </select>
+            <label for="stopbits">Stop bits:</label>
+            <select id="stopbits">
+              <option value="1" selected>1</option>
+              <option value="2">2</option>
+            </select>
+            <input id="rtscts" type="checkbox">
+            <label for="rtscts">Hardware flow control</label>
+          </div>          
+          <!-- End of Port Open option -->
+        <h4>current max portID</h4>
+          <pre id="current_port_idstr"> </pre>
+        <h4>operation</h4>
+          <button id="open" type="button">Open</button>
+          <button id="close" type="button">Close</button>
+          <button id="delete" type="button">Delete</button>
+        <h4>open stt</h4>
+          <pre id="open_stt"> </pre>
+        <h4>receive / last rx string</h4>
+          <pre id="rx_option">{"byteLength":0, "timeoutMs":0}</pre>
+          <button id="receive" type="button">Receive</button>
+          <pre id="last_rx"> </pre>
+          <pre id="rx_lines_option">{"start":0, "end":-1}</pre>
+          <button id="receive_lines" type="button">ReceiveLines</button>
+          <h4>send / last tx string</h4>
+          <button id="send" type="button">Send</button>
+          <pre id="last_tx"> </pre>
+      <h3>PortDetail</h3>
+        <pre id="port_store_result"></pre>
+    </div>
+  <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

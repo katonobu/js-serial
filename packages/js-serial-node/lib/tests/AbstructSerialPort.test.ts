@@ -12,15 +12,15 @@ describe("AbstructSerialPort", () => {
         const ns = new NodeSerialPort()
         const pm = new PortManager(ns)
 
-        expect(pm.portStore.getCallbacksLen()).toBe(0)
-        let unsubscribe0 = pm.portStore.subscribe(()=>{})
-        expect(pm.portStore.getCallbacksLen()).toBe(1)
-        let unsubscribe1 = pm.portStore.subscribe(()=>{})
-        expect(pm.portStore.getCallbacksLen()).toBe(2)
+        expect(pm.getSubscribeCbLen()).toBe(0)
+        let unsubscribe0 = pm.subscribePorts(()=>{})
+        expect(pm.getSubscribeCbLen()).toBe(1)
+        let unsubscribe1 = pm.subscribePorts(()=>{})
+        expect(pm.getSubscribeCbLen()).toBe(2)
         unsubscribe1()
-        expect(pm.portStore.getCallbacksLen()).toBe(1)
+        expect(pm.getSubscribeCbLen()).toBe(1)
         unsubscribe0()
-        expect(pm.portStore.getCallbacksLen()).toBe(0)
+        expect(pm.getSubscribeCbLen()).toBe(0)
     })
 
     it("PortManager init", async () => {
@@ -52,7 +52,7 @@ describe("AbstructSerialPort", () => {
         const dkpis = await ns.getDeviceKeyPortInfos()
         const mockCallbackMayCalledOnce = jest.fn()
         mockCallbackMayCalledOnce.mockImplementation(()=>{
-            const portStore = pm.portStore.get()
+            const portStore = pm.getPorts()
             portStore.curr.forEach((obj, idx)=> {
                 expect(obj.id).toBe(idx)
                 const matchedDkpi = dkpis.filter((dkpi)=>dkpi.portInfo.portName === obj.portName)
@@ -62,10 +62,9 @@ describe("AbstructSerialPort", () => {
                 expect(portStore.attached.length).toBe(portStore.curr.length)
                 expect(portStore.attached[idx]).toBe(idx)
                 expect(portStore.detached.length).toBe(0)
-                expect(portStore.changeId).toBe(portStore.curr.length)
             })
         })
-        let unsubscribe = pm.portStore.subscribe(mockCallbackMayCalledOnce)
+        let unsubscribe = pm.subscribePorts(mockCallbackMayCalledOnce)
         await pm.updateRequest()
         expect(mockCallbackMayCalledOnce).toHaveBeenCalledTimes(1);
         unsubscribe()
@@ -77,14 +76,14 @@ describe("AbstructSerialPort", () => {
         await pm.init()
 
         const mockCallbackMayCalledOnce = jest.fn()
-        let unsubscribe = pm.portStore.subscribe(mockCallbackMayCalledOnce)
+        let unsubscribe = pm.subscribePorts(mockCallbackMayCalledOnce)
         await pm.updateRequest()
         expect(mockCallbackMayCalledOnce).toHaveBeenCalledTimes(1);
         unsubscribe()
 
         // connected number of ports is same, so callback is called on updateRequest()
         const mockCallbackNotCalled = jest.fn();        
-        unsubscribe = pm.portStore.subscribe(mockCallbackNotCalled)
+        unsubscribe = pm.subscribePorts(mockCallbackNotCalled)
         await pm.updateRequest()
         expect(mockCallbackNotCalled).toHaveBeenCalledTimes(0);
         unsubscribe()

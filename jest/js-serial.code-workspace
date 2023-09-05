@@ -1,0 +1,29 @@
+{
+	"folders": [
+		{
+			"path": ".."
+		},
+		{
+			"name": "puppeteer",
+			"path": "../packages/js-serial-web/puppeteer"
+		},
+		{
+			"name": "js-serial-web",
+			"path": "../packages/js-serial-web"
+		},
+		{
+			"name": "js-serial-node",
+			"path": "../packages/js-serial-node"
+		},
+		{
+			"name": "js-serial-core",
+			"path": "../packages/js-serial-core"
+		}
+	],
+	"settings": {
+		"jest.disabledWorkspaceFolders": [
+			"js-serial",
+			"js-serial-web"
+		]
+	}
+}

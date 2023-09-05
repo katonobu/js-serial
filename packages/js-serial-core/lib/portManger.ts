@@ -1,15 +1,9 @@
 import { 
     portIdType, 
     portInfoType, 
-    devicePortType,
     compareKeyType, 
     deviceKeyPortInfoType ,
-    GetDeviceKeyPortInfosFunction, 
-    PromptGrantAccessFunction, 
-    CreatePortFunction,    
-    DeletePortFunction, 
-    OpenPortFunction, 
-    ClosePortFunction,
+    idIndexedObjType,    
     MicroStore, 
     AbstructSerialPort
 } from './AbstructSerialPort'
@@ -27,59 +21,54 @@ export interface keyCompResultType{
     detached:compareKeyType[];
 }
 
-interface idIndexedObjType{
-    key:compareKeyType;
-    available:boolean;
-    port:devicePortType;
-    info:portInfoType;
-}
-
 export class PortManager{
     private _idToObj:idIndexedObjType[] // 御本尊
     private _currentKeysCache:compareKeyType[] // 変化比較用Cache
-    portStore:MicroStore<portStoreType>
-    private _getDeviceKeyPortInfos:GetDeviceKeyPortInfosFunction
-    private _promptGrantAccess:PromptGrantAccessFunction
-    private _createPort:CreatePortFunction
-    private _deletePort:DeletePortFunction
-    private _openPort:OpenPortFunction
-    private _closePort:ClosePortFunction
+    private _portStore:MicroStore<portStoreType>
+    private _serialPort:AbstructSerialPort
+    private _updateCount:number
 
     constructor(
         serialPort:AbstructSerialPort
     ){
         this._idToObj = []
         this._currentKeysCache  = []
-        this.portStore = new MicroStore<portStoreType>({curr:[],attached:[],detached:[],changeId:0})
-        this._getDeviceKeyPortInfos = serialPort.getDeviceKeyPortInfos
-        this._promptGrantAccess = serialPort.promptGrantAccess
-        this._createPort = serialPort.createPort
-        this._deletePort = serialPort.deletePort
-        this._openPort = serialPort.openPort
-        this._closePort = serialPort.closePort
+        this._portStore = new MicroStore<portStoreType>({curr:[],attached:[],detached:[],changeId:0})
+        this._serialPort = serialPort
+        this._updateCount = 0
     }
 
     async init():Promise<void> {
         return Promise.resolve()
     }
     async promptGrantAccess(option:any/*createOption*/):Promise<portInfoType> {
-        return this._promptGrantAccess(option)
+        try {
+            const newPort = await this._serialPort.promptGrantAccess(option)
+            await this.updateRequest()
+            const matched:idIndexedObjType|undefined = this._idToObj.find((obj)=>obj.key===newPort)
+            return matched?.info ?? {id:-1, pid:-1, vid:-1}
+        }catch(e) {
+            console.log(e)
+            return {id:-1, pid:-1, vid:-1}
+        }
     }
     async deletePort(id:portIdType):Promise<portInfoType> {
-        return this._deletePort(this._idToObj[id].port)
+        const ret = await this._serialPort.deletePort(this._idToObj[id])
+        this.updateRequest()
+        return ret
     }
     async openPort(id:portIdType, option:any/*openOption*/):Promise<void> {
-        return this._openPort(this._idToObj[id].port, option)
+        return this._serialPort.openPort(this._idToObj[id].port, option)
     }
     async closePort(id:portIdType):Promise<void> {
-        return this._closePort(this._idToObj[id].port)
+        return this._serialPort.closePort(this._idToObj[id].port)
     }
     async finalize():Promise<void> {
         return Promise.resolve()
     }
 
     async updateRequest():Promise<void>{
-        const portKeyObjInfos = await this._getDeviceKeyPortInfos()
+        const portKeyObjInfos = await this._serialPort.getDeviceKeyPortInfos()
 
         const latestKeys = portKeyObjInfos.map((pkoi)=>pkoi.key)
         const currentKeys = this._currentKeysCache
@@ -102,7 +91,7 @@ export class PortManager{
                         matched.available = true
                         const portKeyObjInfoFromKey = portKeyObjInfos.find((pkoi)=>pkoi.key===key)
                         if (portKeyObjInfoFromKey && portKeyObjInfoFromKey.portInfo.portName) {
-                            matched.port = this._createPort(portKeyObjInfoFromKey.portInfo.portName)
+                            matched.port = this._serialPort.createPort(portKeyObjInfoFromKey.portInfo.portName)
                             attachedIds.push(matched.info.id)
                         } else {
                             // キーに対応するポートがない or port名が設定されていない
@@ -135,7 +124,7 @@ export class PortManager{
                             this._idToObj.push({
                                 key,
                                 available:true,
-                                port:this._createPort(portObjInfoFromKey.portInfo.portName),
+                                port:this._serialPort.createPort(portObjInfoFromKey.portInfo.portName),
                                 info:{
                                     id:newId,
                                     pid:portObjInfoFromKey.portInfo.pid, 
@@ -170,21 +159,25 @@ export class PortManager{
         }
         // update related variables from idToObj
         if (0 < attachedKeys.length || 0 < detachedKeys.length) {
+            this._updateCount++
             this._currentKeysCache = this._idToObj.filter((obj)=>obj.available).map((obj)=>obj.key)
-            this.portStore.update({
+            this._portStore.update({
                 curr:this._idToObj.filter((obj)=>obj.available).map((obj)=>obj.info),
                 attached:attachedIds,
                 detached:detachedIds,
-                changeId:this._idToObj.length
+                changeId:this._updateCount
             })
         }
     }
 
     getPorts():portStoreType {
-        return this.portStore.get()
+        return this._portStore.get()
     }
     subscribePorts(cb: () => void):() => void {
-        return this.portStore.subscribe(cb)
+        return this._portStore.subscribe(cb)
+    }
+    getSubscribeCbLen():number {
+        return this._portStore.getCallbacksLen()
     }
     subscribeOpenStt(id:portIdType, cb:()=>void):()=>void {
         return cb
