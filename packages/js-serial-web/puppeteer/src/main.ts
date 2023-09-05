@@ -2,7 +2,6 @@ import {WebSerialPort} from '../../lib/WebSerialPort'
 import {PortManager} from '../../../js-serial-core/lib/portManger'
 const wsp = new WebSerialPort()
 const pm = new PortManager(wsp)
-pm.init()
 
 const logTransaction = (action:string, request:object, response:object, isError=false) => {
   let transactionObj:{action:string, req:object, err?:object, rsp?:object} = {action, req:request}
@@ -18,6 +17,19 @@ const logEvent = (action:string, payload:object) => {
   const eventObj:{action:string, payload:object} = {action, payload}
   console.log("Event:" + JSON.stringify(eventObj))
 }
+
+const initEle = document.querySelector<HTMLButtonElement>('#init')!
+initEle.onclick = ()=>{
+  Promise.resolve(pm.init({}))
+  .then(()=>{
+    logTransaction("init", {}, {})
+
+  })
+  .catch((e)=>{
+    logTransaction("init", {}, e.toString(), true)
+  })
+}
+
 
 const argEle = document.querySelector<HTMLPreElement>('#arg')!
 const createButtonEle = document.querySelector<HTMLButtonElement>('#create')!
@@ -270,5 +282,4 @@ pm.subscribePorts(()=>{
     logEvent('changePorts', {})
   })
 })
-pm.updateRequest()
 

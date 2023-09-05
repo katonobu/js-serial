@@ -4,8 +4,19 @@ import {
 import { SerialPort} from 'serialport'
 
 export class NodeSerialPort extends AbstructSerialPort{
+    private static intervalId:NodeJS.Timeout
+
     constructor(){
         super();
+    }
+
+    init = async (opt:object) => {
+        if (!NodeSerialPort.intervalId) {
+            const {pollingIntervalMs = 1000 * 5, updateReq} = opt as {pollingIntervalMs?:number, updateReq:()=>Promise<void>}
+            NodeSerialPort.intervalId = setInterval(()=>{
+                updateReq()
+            }, pollingIntervalMs)
+        }
     }
 
     getDeviceKeyPortInfos = async ()=> {
@@ -22,22 +33,23 @@ export class NodeSerialPort extends AbstructSerialPort{
 //            console.log(result)
         return result
     }
-    // @ts-ignore
-    promptGrantAccess = (opt)=>{
-        // throw error
-        return Promise.resolve({id:0, pid:0, vid:0})
+    promptGrantAccess = ()=>{
+        throw(new Error("js-serial-node dosen't support promptGrantAccess()"))
     }
-    // @ts-ignore
-    createPort = (path) => {
+    createPort = (path:string) => {
         return new SerialPort({path, baudRate:115200, autoOpen:false})
     }
-    // @ts-ignore
-    deletePort = (dp)=>{
-        // throw error
-        return Promise.resolve({id:0, pid:0, vid:0})
+    deletePort = ()=>{
+        throw(new Error("js-serial-node dosen't support deletePort()"))
     }
     // @ts-ignore
     openPort = (dp, opt)=>Promise.resolve()
     // @ts-ignore
     closePort = (dp)=>Promise.resolve()
+    finalize = async (opt:object) => {
+        if (NodeSerialPort.intervalId) {
+            clearInterval(NodeSerialPort.intervalId)
+        }
+    }
+
 }

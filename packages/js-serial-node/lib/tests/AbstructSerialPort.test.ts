@@ -12,6 +12,7 @@ describe("AbstructSerialPort", () => {
         const ns = new NodeSerialPort()
         const pm = new PortManager(ns)
 
+        await pm.init({})
         expect(pm.getSubscribeCbLen()).toBe(0)
         let unsubscribe0 = pm.subscribePorts(()=>{})
         expect(pm.getSubscribeCbLen()).toBe(1)
@@ -21,31 +22,33 @@ describe("AbstructSerialPort", () => {
         expect(pm.getSubscribeCbLen()).toBe(1)
         unsubscribe0()
         expect(pm.getSubscribeCbLen()).toBe(0)
+        await pm.finalize()
     })
 
     it("PortManager init", async () => {
         const ns = new NodeSerialPort()
         const pm = new PortManager(ns)
 
-        const initretval = pm.init()
+        const initretval = pm.init({})
         expect(initretval).toBeInstanceOf(Promise)
         expect(await initretval).toBe(undefined)
+        await pm.finalize()
     })
 
     it("PortManager updateRequest basic", async () => {
         const ns = new NodeSerialPort()
         const pm = new PortManager(ns)
-        await pm.init()
+        await pm.init({})
         
         const update = pm.updateRequest()
         expect(update).toBeInstanceOf(Promise)
         expect(await update).toBe(undefined)
+        await pm.finalize()
     })
 
     it("PortManager check portStore value on subscribe function called ", async () => {
         const ns = new NodeSerialPort()
         const pm = new PortManager(ns)
-        await pm.init()
 
         // just after instanciat PortManager, 
         // result of ns.getDeviceKeyPortInfos() is newly added, if updateRequest()is called.
@@ -65,19 +68,21 @@ describe("AbstructSerialPort", () => {
             })
         })
         let unsubscribe = pm.subscribePorts(mockCallbackMayCalledOnce)
-        await pm.updateRequest()
+
+        await pm.init({})
         expect(mockCallbackMayCalledOnce).toHaveBeenCalledTimes(1);
         unsubscribe()
+        await pm.finalize()
     })
 
     it("PortManager subscribe function called onece even if updateRequest() called twice on ports are not changed", async () => {
         const ns = new NodeSerialPort()
         const pm = new PortManager(ns)
-        await pm.init()
 
         const mockCallbackMayCalledOnce = jest.fn()
         let unsubscribe = pm.subscribePorts(mockCallbackMayCalledOnce)
-        await pm.updateRequest()
+        
+        await pm.init({})
         expect(mockCallbackMayCalledOnce).toHaveBeenCalledTimes(1);
         unsubscribe()
 
@@ -87,5 +92,6 @@ describe("AbstructSerialPort", () => {
         await pm.updateRequest()
         expect(mockCallbackNotCalled).toHaveBeenCalledTimes(0);
         unsubscribe()
+        await pm.finalize()
     })
 });

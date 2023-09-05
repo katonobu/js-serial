@@ -47,18 +47,22 @@ export class MicroStore<T> {
     }
 }
 
+export type InitFunction = (opt:object) => Promise<void>
 export type GetDeviceKeyPortInfosFunction = () => Promise<deviceKeyPortInfoType[]>
 export type PromptGrantAccessFunction = (option:object/*createOption*/)=>Promise<devicePortType>
 export type CreatePortFunction = (path:string)=>devicePortType
 export type DeletePortFunction = (devicePort:deviceKeyPortInfoAvailableType)=>Promise<portInfoType>
 export type OpenPortFunction = (devicePort:devicePortType, option:any/*openOption*/)=>Promise<void>
 export type ClosePortFunction = (devicePort:devicePortType)=>Promise<void>
+export type FinalizeFunction = (opt:object) => Promise<void>
 
 export abstract class AbstructSerialPort{
+    abstract init:InitFunction
     abstract getDeviceKeyPortInfos:GetDeviceKeyPortInfosFunction
     abstract promptGrantAccess:PromptGrantAccessFunction
     abstract createPort:CreatePortFunction
     abstract deletePort:DeletePortFunction
     abstract openPort:OpenPortFunction
     abstract closePort:ClosePortFunction
+    abstract finalize:FinalizeFunction
 }
