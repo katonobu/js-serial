@@ -35,6 +35,16 @@ describe("AbstructSerialPort", () => {
         await pm.finalize()
     })
 
+    it("PortManager finalize", async () => {
+        const ns = new NodeSerialPort()
+        const pm = new PortManager(ns)
+
+        await pm.init({})
+        const finalizeRetval = pm.finalize()
+        expect(finalizeRetval).toBeInstanceOf(Promise)
+        expect(await finalizeRetval).toBe(undefined)
+    })
+
     it("PortManager updateRequest basic", async () => {
         const ns = new NodeSerialPort()
         const pm = new PortManager(ns)
@@ -81,7 +91,7 @@ describe("AbstructSerialPort", () => {
 
         const mockCallbackMayCalledOnce = jest.fn()
         let unsubscribe = pm.subscribePorts(mockCallbackMayCalledOnce)
-        
+
         await pm.init({})
         expect(mockCallbackMayCalledOnce).toHaveBeenCalledTimes(1);
         unsubscribe()

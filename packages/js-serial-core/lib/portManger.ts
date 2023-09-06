@@ -39,7 +39,7 @@ export class PortManager{
     }
 
     async init(opt:{pollingIntervalMs?:number}):Promise<void> {
-        await this._serialPort.init({updateReq:this.updateRequest, pollingIntervalMs:opt?.pollingIntervalMs})
+        await this._serialPort.init({portManager:this, pollingIntervalMs:opt?.pollingIntervalMs})
         await this.updateRequest()
     }
     async promptGrantAccess(option:any/*createOption*/):Promise<portInfoType> {
@@ -65,7 +65,7 @@ export class PortManager{
         return this._serialPort.closePort(this._idToObj[id].port)
     }
     async finalize():Promise<void> {
-        return this._serialPort.finalize({updateReq:this.updateRequest})
+        return this._serialPort.finalize({})
     }
 
     async updateRequest():Promise<void>{

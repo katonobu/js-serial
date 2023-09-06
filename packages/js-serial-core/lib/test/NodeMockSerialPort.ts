@@ -6,7 +6,9 @@ import { MockBinding } from '@serialport/binding-mock'
 
 export class NodeMockSerialPort extends AbstructSerialPort{
     private static portCount = 0
-    private static intervalId:NodeJS.Timeout
+    private static intervalId:NodeJS.Timeout | undefined
+    private static portManager:{updateRequest:()=>Promise<void>} | undefined
+
 
     static addPort = (vid:string ="0", pid:string="0"):string => {
         const path = `/dev/MOCK${NodeMockSerialPort.portCount}`
@@ -24,9 +26,12 @@ export class NodeMockSerialPort extends AbstructSerialPort{
 
     init = async (opt:object) => {
         if (!NodeMockSerialPort.intervalId) {
-            const {pollingIntervalMs = 1000 * 5, updateReq} = opt as {pollingIntervalMs?:number, updateReq:()=>Promise<void>}
+            const {pollingIntervalMs = 1000 * 5, portManager} = opt as {pollingIntervalMs?:number, portManager:{updateRequest:()=>Promise<void>}}
+            NodeMockSerialPort.portManager = portManager
             NodeMockSerialPort.intervalId = setInterval(()=>{
-                updateReq()
+                if (NodeMockSerialPort.portManager) {
+                    NodeMockSerialPort.portManager?.updateRequest()
+                }
             }, pollingIntervalMs)
         }
     }
@@ -61,6 +66,8 @@ export class NodeMockSerialPort extends AbstructSerialPort{
     finalize = async (opt:object) => {
         if (NodeMockSerialPort.intervalId) {
             clearInterval(NodeMockSerialPort.intervalId)
+            NodeMockSerialPort.intervalId = undefined
+            NodeMockSerialPort.portManager = undefined
         }
     }
 }

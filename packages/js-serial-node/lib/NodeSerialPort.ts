@@ -4,7 +4,8 @@ import {
 import { SerialPort} from 'serialport'
 
 export class NodeSerialPort extends AbstructSerialPort{
-    private static intervalId:NodeJS.Timeout
+    private static intervalId:NodeJS.Timeout | undefined
+    private static portManager:{updateRequest:()=>Promise<void>} | undefined
 
     constructor(){
         super();
@@ -12,9 +13,12 @@ export class NodeSerialPort extends AbstructSerialPort{
 
     init = async (opt:object) => {
         if (!NodeSerialPort.intervalId) {
-            const {pollingIntervalMs = 1000 * 5, updateReq} = opt as {pollingIntervalMs?:number, updateReq:()=>Promise<void>}
+            const {pollingIntervalMs = 1000 * 5, portManager} = opt as {pollingIntervalMs?:number, portManager:{updateRequest:()=>Promise<void>}}
+            NodeSerialPort.portManager = portManager
             NodeSerialPort.intervalId = setInterval(()=>{
-                updateReq()
+                if (NodeSerialPort.portManager) {
+                    NodeSerialPort.portManager?.updateRequest()
+                }
             }, pollingIntervalMs)
         }
     }
@@ -49,7 +53,8 @@ export class NodeSerialPort extends AbstructSerialPort{
     finalize = async (opt:object) => {
         if (NodeSerialPort.intervalId) {
             clearInterval(NodeSerialPort.intervalId)
+            NodeSerialPort.intervalId = undefined
+            NodeSerialPort.portManager = undefined
         }
     }
-
 }
