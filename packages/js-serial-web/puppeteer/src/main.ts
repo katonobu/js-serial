@@ -30,7 +30,6 @@ initEle.onclick = ()=>{
   })
 }
 
-
 const argEle = document.querySelector<HTMLPreElement>('#arg')!
 const createButtonEle = document.querySelector<HTMLButtonElement>('#create')!
 createButtonEle.onclick = ()=>{
@@ -57,6 +56,19 @@ getPortsEle.onclick = ()=>{
     logTransaction("get_ports", {}, e.toString(), true)
   })
 }
+
+const finEle = document.querySelector<HTMLButtonElement>('#finalize')!
+finEle.onclick = ()=>{
+  Promise.resolve(pm.finalize())
+  .then(()=>{
+    logTransaction("finalize", {}, {})
+
+  })
+  .catch((e)=>{
+    logTransaction("finalize", {}, e.toString(), true)
+  })
+}
+
 
 const currentPortStrId = document.querySelector<HTMLPreElement>('#current_port_idstr')!
 currentPortStrId.innerText = ''
