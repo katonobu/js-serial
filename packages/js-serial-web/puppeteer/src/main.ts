@@ -132,24 +132,20 @@ openEle.onclick = ()=>{
     openOption = getGuiOpenOptions()
   }
   console.log("open", openPortIdStr, JSON.stringify(openOption))
-/* ToDo
-  openPort(openPortIdStr, openOption)
+  pm.openPort(parseInt(openPortIdStr), openOption)
   .then((result)=>{
-    openResult = result
-    logTransaction("open", {openOption, idStr:openPortIdStr}, {openResult})
+    logTransaction("open", {openOption, idStr:openPortIdStr}, {result})
   })
   .catch((e)=>{
     logTransaction("open", {openOption, idStr:openPortIdStr}, {msg:e.toString()}, true) 
   })
-  */
 }
 
 const closeEle = document.querySelector<HTMLButtonElement>('#close')!
 closeEle.onclick = ()=>{
   const closePortIdStr = currentPortStrId.innerText
   console.log("close", closePortIdStr)
-/* ToDo
-  closePort(closePortIdStr)
+  pm.closePort(parseInt(closePortIdStr))
   .then((result)=>{
     logTransaction("close", {idStr:closePortIdStr}, {result})
 
@@ -157,7 +153,6 @@ closeEle.onclick = ()=>{
   .catch((e)=>{
     logTransaction("close", {idStr:closePortIdStr}, { msg:e.toString()}, true)
   })
-  */
 }
 
 
@@ -182,9 +177,7 @@ receiveEle.onclick = ()=>{
   const length = rxOption.byteLength
   const timeout = rxOption.timeoutMs
   if (length === 0 && timeout === 0) {
-    /* ToDo
-    receievePort(receivePortIdStr, length, timeout)
-    */
+    pm.receivePort(parseInt(receivePortIdStr, 10), length, timeout,{})
     logTransaction("receive", {idStr:receivePortIdStr, length, timeout},{})
   } else {
     /* ToDo
@@ -202,19 +195,17 @@ receiveEle.onclick = ()=>{
 const receiveLinesEle = document.querySelector<HTMLButtonElement>('#receive_lines')!
 const rxLinesOptionEle = document.querySelector<HTMLButtonElement>('#rx_lines_option')!
 receiveLinesEle.onclick = ()=>{
-  /* ToDo
   const receiveLinesIdStr = currentPortStrId.innerText
   const rxLinesOption = JSON.parse(rxLinesOptionEle.innerText)
   const start = rxLinesOption.start
   const end = rxLinesOption.end
-  receieveLines(receiveLinesIdStr, start, end)
+  Promise.resolve(pm.getRxLines(parseInt(receiveLinesIdStr, 10), start, end))
   .then((result) => {
     logTransaction("receive_lines", {idStr:receiveLinesIdStr, start, end}, result)
   })
   .catch((e)=>{
     logTransaction("receive_lines", {idStr:receiveLinesIdStr, start, end}, {msg:e.toString()}, true)
   })
-    */
 }
 
 const sendPortDataStr = document.querySelector<HTMLPreElement>('#last_tx')!
@@ -224,16 +215,13 @@ sendEle.onclick = ()=>{
   const sendPortIdStr = currentPortStrId.innerText
   const encoder = new TextEncoder();
   const sendStr = sendPortDataStr.innerText
-  /* ToDo
-  sendPort(sendPortIdStr, encoder.encode(sendStr))
+  pm.sendPort(parseInt(sendPortIdStr, 10), encoder.encode(sendStr),{})
   .then((result)=>{
-    sendResult = result
     logTransaction("send", {idStr:sendPortIdStr, sendStr},{result})
   })
   .catch((e)=>{
     logTransaction("send", {idStr:sendPortIdStr, sendStr}, {msg:e.toString()}, true)
   })
-  */
 }
 
 const lastRxStr = document.querySelector<HTMLPreElement>('#last_rx')!
@@ -255,20 +243,16 @@ pm.subscribePorts(()=>{
     if (0 < ports.curr.length) {
       const maxPortId = ports.curr.length-1
       currentPortStrId.innerText = ports.curr[maxPortId].id.toString(10)
-      /* ToDo
       unsubscribeOpenSttStore()
-      unsubscribeOpenSttStore = openSttStore[maxPortId].subscribe(()=>{
-        openSttStr.innerText = openSttStore[maxPortId].get()?'OPEN':'CLOSE'
+      unsubscribeOpenSttStore = pm.subscribeOpenStt(maxPortId, ()=>{
+        openSttStr.innerText = pm.getOpenStt(maxPortId)?'OPEN':'CLOSE'
       })
-      const currentOpenStt = openSttStore[maxPortId].get()
-//      console.log(currentOpenStt)
-      openSttStr.innerText = currentOpenStt === true ?'OPEN':'CLOSE'
-
+      openSttStr.innerText = pm.getOpenStt(maxPortId)?'OPEN':'CLOSE'
       unsubscribeRxStore()
-      unsubscribeRxStore = rxLineNumStore[maxPortId].subscribe(()=>{
-        const rxLineNum = rxLineNumStore[maxPortId].get()
+      unsubscribeRxStore = pm.subscribeRxLineNum(maxPortId,()=>{
+        const rxLineNum = pm.getRxLineNum(maxPortId)
         logEvent('rxLineNum', rxLineNum)
-        receieveLines(maxPortId.toString(10), rxLineNum.totalLines - 1,rxLineNum.totalLines - 0)
+        Promise.resolve(pm.getRxLines(maxPortId, rxLineNum.totalLines - 1,rxLineNum.totalLines - 0))
         .then((rxLines)=>{
           if (0 < rxLines.data.length){
             logEvent('rxLines', rxLines)
@@ -276,13 +260,10 @@ pm.subscribePorts(()=>{
           }
         })
       })
-      */
     } else {
       currentPortStrId.innerText = ' '
-      /*
       unsubscribeOpenSttStore()
       unsubscribeOpenSttStore = ()=>{}
-      */
       openSttStr.innerText = ' '
     }
     console.log("portStoreSubscriber ->")
