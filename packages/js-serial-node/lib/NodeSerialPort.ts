@@ -1,6 +1,6 @@
 import {
     AbstractSerialPort
-} from "../../js-serial-core/lib/AbstractSerialPort";
+} from "../../js-serial-core/lib/index"
 import { SerialPort} from 'serialport'
 
 export class NodeSerialPort extends AbstractSerialPort{

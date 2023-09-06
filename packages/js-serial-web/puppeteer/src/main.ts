@@ -1,7 +1,5 @@
-import {WebSerialPort} from '../../lib/WebSerialPort'
-import {PortManager} from '../../../js-serial-core/lib/portManger'
-const wsp = new WebSerialPort()
-const pm = new PortManager(wsp)
+import JsSerialWeb from '../../lib/index'
+const jsw = new JsSerialWeb()
 
 const logTransaction = (action:string, request:object, response:object, isError=false) => {
   let transactionObj:{action:string, req:object, err?:object, rsp?:object} = {action, req:request}
@@ -20,7 +18,7 @@ const logEvent = (action:string, payload:object) => {
 
 const initEle = document.querySelector<HTMLButtonElement>('#init')!
 initEle.onclick = ()=>{
-  Promise.resolve(pm.init({}))
+  Promise.resolve(jsw.init({}))
   .then(()=>{
     logTransaction("init", {}, {})
 
@@ -36,7 +34,7 @@ createButtonEle.onclick = ()=>{
 //  console.log(argEle.innerText)
   const createPortOption = JSON.parse(argEle.innerText) as SerialPortRequestOptions
 //  console.log(createPortOption)
-  pm.promptGrantAccess(createPortOption)
+  jsw.promptGrantAccess(createPortOption)
   .then((createdPort) => {
     logTransaction("create", createPortOption, createdPort)
   })
@@ -47,7 +45,7 @@ createButtonEle.onclick = ()=>{
 
 const getPortsEle = document.querySelector<HTMLButtonElement>('#get_ports')!
 getPortsEle.onclick = ()=>{
-  Promise.resolve(pm.getPorts())
+  Promise.resolve(jsw.getPorts())
   .then((result)=>{
     logTransaction("get_ports", {}, {length:result.curr.length, res:result})
 
@@ -59,7 +57,7 @@ getPortsEle.onclick = ()=>{
 
 const finEle = document.querySelector<HTMLButtonElement>('#finalize')!
 finEle.onclick = ()=>{
-  Promise.resolve(pm.finalize())
+  Promise.resolve(jsw.finalize())
   .then(()=>{
     logTransaction("finalize", {}, {})
 
@@ -132,7 +130,7 @@ openEle.onclick = ()=>{
     openOption = getGuiOpenOptions()
   }
   console.log("open", openPortIdStr, JSON.stringify(openOption))
-  pm.openPort(parseInt(openPortIdStr), openOption)
+  jsw.openPort(parseInt(openPortIdStr), openOption)
   .then((result)=>{
     logTransaction("open", {openOption, idStr:openPortIdStr}, {result})
   })
@@ -145,7 +143,7 @@ const closeEle = document.querySelector<HTMLButtonElement>('#close')!
 closeEle.onclick = ()=>{
   const closePortIdStr = currentPortStrId.innerText
   console.log("close", closePortIdStr)
-  pm.closePort(parseInt(closePortIdStr))
+  jsw.closePort(parseInt(closePortIdStr))
   .then((result)=>{
     logTransaction("close", {idStr:closePortIdStr}, {result})
 
@@ -160,7 +158,7 @@ const deleteEle = document.querySelector<HTMLButtonElement>('#delete')!
 deleteEle.onclick = ()=>{
   const deletePortIdStr = currentPortStrId.innerText
   const deletePortId = parseInt(deletePortIdStr, 10)
-  pm.deletePort(deletePortId)
+  jsw.deletePort(deletePortId)
   .then((result)=>{
     logTransaction("delete", {idStr:deletePortIdStr}, {result})
   })
@@ -177,7 +175,7 @@ receiveEle.onclick = ()=>{
   const length = rxOption.byteLength
   const timeout = rxOption.timeoutMs
   if (length === 0 && timeout === 0) {
-    pm.receivePort(parseInt(receivePortIdStr, 10), length, timeout,{})
+    jsw.receivePort(parseInt(receivePortIdStr, 10), length, timeout,{})
     logTransaction("receive", {idStr:receivePortIdStr, length, timeout},{})
   } else {
     /* ToDo
@@ -199,7 +197,7 @@ receiveLinesEle.onclick = ()=>{
   const rxLinesOption = JSON.parse(rxLinesOptionEle.innerText)
   const start = rxLinesOption.start
   const end = rxLinesOption.end
-  Promise.resolve(pm.getRxLines(parseInt(receiveLinesIdStr, 10), start, end))
+  Promise.resolve(jsw.getRxLines(parseInt(receiveLinesIdStr, 10), start, end))
   .then((result) => {
     logTransaction("receive_lines", {idStr:receiveLinesIdStr, start, end}, result)
   })
@@ -215,7 +213,7 @@ sendEle.onclick = ()=>{
   const sendPortIdStr = currentPortStrId.innerText
   const encoder = new TextEncoder();
   const sendStr = sendPortDataStr.innerText
-  pm.sendPort(parseInt(sendPortIdStr, 10), encoder.encode(sendStr),{})
+  jsw.sendPort(parseInt(sendPortIdStr, 10), encoder.encode(sendStr),{})
   .then((result)=>{
     logTransaction("send", {idStr:sendPortIdStr, sendStr},{result})
   })
@@ -234,9 +232,9 @@ const openSttStr = document.querySelector<HTMLPreElement>('#open_stt')!
 openSttStr.innerText = ''
 let unsubscribeOpenSttStore = ()=>{}
 let unsubscribeRxStore = ()=>{}
-pm.subscribePorts(()=>{
+jsw.subscribePorts(()=>{
   console.log("portStoreSubscriber <-")
-  Promise.resolve(pm.getPorts())
+  Promise.resolve(jsw.getPorts())
   .then((ports)=>{
     portslenResult.innerText = ports.curr.length.toString(10)
     portStoreResult.innerText = JSON.stringify(ports,null, 2)
@@ -244,15 +242,15 @@ pm.subscribePorts(()=>{
       const maxPortId = ports.curr.length-1
       currentPortStrId.innerText = ports.curr[maxPortId].id.toString(10)
       unsubscribeOpenSttStore()
-      unsubscribeOpenSttStore = pm.subscribeOpenStt(maxPortId, ()=>{
-        openSttStr.innerText = pm.getOpenStt(maxPortId)?'OPEN':'CLOSE'
+      unsubscribeOpenSttStore = jsw.subscribeOpenStt(maxPortId, ()=>{
+        openSttStr.innerText = jsw.getOpenStt(maxPortId)?'OPEN':'CLOSE'
       })
-      openSttStr.innerText = pm.getOpenStt(maxPortId)?'OPEN':'CLOSE'
+      openSttStr.innerText = jsw.getOpenStt(maxPortId)?'OPEN':'CLOSE'
       unsubscribeRxStore()
-      unsubscribeRxStore = pm.subscribeRxLineNum(maxPortId,()=>{
-        const rxLineNum = pm.getRxLineNum(maxPortId)
+      unsubscribeRxStore = jsw.subscribeRxLineNum(maxPortId,()=>{
+        const rxLineNum = jsw.getRxLineNum(maxPortId)
         logEvent('rxLineNum', rxLineNum)
-        Promise.resolve(pm.getRxLines(maxPortId, rxLineNum.totalLines - 1,rxLineNum.totalLines - 0))
+        Promise.resolve(jsw.getRxLines(maxPortId, rxLineNum.totalLines - 1,rxLineNum.totalLines - 0))
         .then((rxLines)=>{
           if (0 < rxLines.data.length){
             logEvent('rxLines', rxLines)

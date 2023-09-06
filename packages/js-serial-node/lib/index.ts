@@ -1,11 +1,11 @@
-import {WebSerialPort} from './WebSerialPort'
+import { NodeSerialPort } from "./NodeSerialPort";
 import {PortManager, AbstractDataHandler, DelimiterDataHandler} from '../../js-serial-core/lib/portManger'
 
-export default class JsSerialWeb extends PortManager{
+export default class JsSerialNode extends PortManager{
     constructor(
         rxDataHandler:AbstractDataHandler = new DelimiterDataHandler()
     ){  
-        const wsp = new WebSerialPort()
-        super(wsp, rxDataHandler)
+        const nsp = new NodeSerialPort
+        super(nsp, rxDataHandler)
     }
 }

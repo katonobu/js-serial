@@ -1,5 +1,7 @@
 import {
-    AbstractSerialPort, deviceKeyPortInfoAvailableType,receivePortOptionType
+    AbstractSerialPort,
+    deviceKeyPortInfoAvailableType,
+    receivePortOptionType
 } from "../../js-serial-core/lib/AbstractSerialPort";
 
 export class WebSerialPort extends AbstractSerialPort{

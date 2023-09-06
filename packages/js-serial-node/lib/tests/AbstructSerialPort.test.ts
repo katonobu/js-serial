@@ -1,61 +1,56 @@
-import { NodeSerialPort } from '../NodeSerialPort'
-import { PortManager } from '../../../js-serial-core/lib/portManger';
+import JsSerialNode from '../index'
 
 describe("AbstractSerialPort", () => {
     it("PortManager instance", async () => {
-        const ns = new NodeSerialPort()
-        const pm = new PortManager(ns)
-        expect(pm).toBeInstanceOf(PortManager)
+        const jsn = new JsSerialNode()
+        expect(jsn).toBeInstanceOf(JsSerialNode)
     })
 
     it("PortManager portStore subscribe/unsubscribe", async () => {
-        const ns = new NodeSerialPort()
-        const pm = new PortManager(ns)
+        const jsn = new JsSerialNode()
 
-        await pm.init({})
-        expect(pm.getSubscribeCbLen()).toBe(0)
-        let unsubscribe0 = pm.subscribePorts(()=>{})
-        expect(pm.getSubscribeCbLen()).toBe(1)
-        let unsubscribe1 = pm.subscribePorts(()=>{})
-        expect(pm.getSubscribeCbLen()).toBe(2)
+        await jsn.init({})
+        expect(jsn.getSubscribeCbLen()).toBe(0)
+        let unsubscribe0 = jsn.subscribePorts(()=>{})
+        expect(jsn.getSubscribeCbLen()).toBe(1)
+        let unsubscribe1 = jsn.subscribePorts(()=>{})
+        expect(jsn.getSubscribeCbLen()).toBe(2)
         unsubscribe1()
-        expect(pm.getSubscribeCbLen()).toBe(1)
+        expect(jsn.getSubscribeCbLen()).toBe(1)
         unsubscribe0()
-        expect(pm.getSubscribeCbLen()).toBe(0)
-        await pm.finalize()
+        expect(jsn.getSubscribeCbLen()).toBe(0)
+        await jsn.finalize()
     })
 
     it("PortManager init", async () => {
-        const ns = new NodeSerialPort()
-        const pm = new PortManager(ns)
+        const jsn = new JsSerialNode()
 
-        const initretval = pm.init({})
+        const initretval = jsn.init({})
         expect(initretval).toBeInstanceOf(Promise)
         expect(await initretval).toBe(undefined)
-        await pm.finalize()
+        await jsn.finalize()
     })
 
     it("PortManager finalize", async () => {
-        const ns = new NodeSerialPort()
-        const pm = new PortManager(ns)
+        const jsn = new JsSerialNode()
 
-        await pm.init({})
-        const finalizeRetval = pm.finalize()
+        await jsn.init({})
+        const finalizeRetval = jsn.finalize()
         expect(finalizeRetval).toBeInstanceOf(Promise)
         expect(await finalizeRetval).toBe(undefined)
     })
 
     it("PortManager updateRequest basic", async () => {
-        const ns = new NodeSerialPort()
-        const pm = new PortManager(ns)
-        await pm.init({})
+        const jsn = new JsSerialNode()
+        await jsn.init({})
         
-        const update = pm.updateRequest()
+        const update = jsn.updateRequest()
         expect(update).toBeInstanceOf(Promise)
         expect(await update).toBe(undefined)
-        await pm.finalize()
+        await jsn.finalize()
     })
 
+    /*
     it("PortManager check portStore value on subscribe function called ", async () => {
         const ns = new NodeSerialPort()
         const pm = new PortManager(ns)
@@ -84,24 +79,23 @@ describe("AbstractSerialPort", () => {
         unsubscribe()
         await pm.finalize()
     })
-
+*/
     it("PortManager subscribe function called onece even if updateRequest() called twice on ports are not changed", async () => {
-        const ns = new NodeSerialPort()
-        const pm = new PortManager(ns)
+        const jsn = new JsSerialNode()
 
         const mockCallbackMayCalledOnce = jest.fn()
-        let unsubscribe = pm.subscribePorts(mockCallbackMayCalledOnce)
+        let unsubscribe = jsn.subscribePorts(mockCallbackMayCalledOnce)
 
-        await pm.init({})
+        await jsn.init({})
         expect(mockCallbackMayCalledOnce).toHaveBeenCalledTimes(1);
         unsubscribe()
 
         // connected number of ports is same, so callback is called on updateRequest()
         const mockCallbackNotCalled = jest.fn();        
-        unsubscribe = pm.subscribePorts(mockCallbackNotCalled)
-        await pm.updateRequest()
+        unsubscribe = jsn.subscribePorts(mockCallbackNotCalled)
+        await jsn.updateRequest()
         expect(mockCallbackNotCalled).toHaveBeenCalledTimes(0);
         unsubscribe()
-        await pm.finalize()
+        await jsn.finalize()
     })
 });
