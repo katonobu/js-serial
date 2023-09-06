@@ -5,7 +5,7 @@ export default class JsSerialNode extends JsSerialBase{
     constructor(
         rxDataHandler:AbstractDataHandler = new DelimiterDataHandler()
     ){  
-        const nsp = new NodeSerialPort
+        const nsp = new NodeSerialPort()
         super(nsp, rxDataHandler)
     }
 }
