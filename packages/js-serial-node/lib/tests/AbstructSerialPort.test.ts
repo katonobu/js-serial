@@ -1,7 +1,7 @@
 import { NodeSerialPort } from '../NodeSerialPort'
 import { PortManager } from '../../../js-serial-core/lib/portManger';
 
-describe("AbstructSerialPort", () => {
+describe("AbstractSerialPort", () => {
     it("PortManager instance", async () => {
         const ns = new NodeSerialPort()
         const pm = new PortManager(ns)

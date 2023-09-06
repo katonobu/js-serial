@@ -1,10 +1,10 @@
 import {
-    AbstructSerialPort
+    AbstractSerialPort
 } from "../AbstractSerialPort";
 import { SerialPortMock } from 'serialport'
 import { MockBinding } from '@serialport/binding-mock'
 
-export class NodeMockSerialPort extends AbstructSerialPort{
+export class NodeMockSerialPort extends AbstractSerialPort{
     private static portCount = 0
     private static intervalId:NodeJS.Timeout | undefined
     private static portManager:{updateRequest:()=>Promise<void>} | undefined

@@ -1,9 +1,9 @@
 import {
-    AbstructSerialPort
+    AbstractSerialPort
 } from "../../js-serial-core/lib/AbstractSerialPort";
 import { SerialPort} from 'serialport'
 
-export class NodeSerialPort extends AbstructSerialPort{
+export class NodeSerialPort extends AbstractSerialPort{
     private static intervalId:NodeJS.Timeout | undefined
     private static portManager:{updateRequest:()=>Promise<void>} | undefined
 

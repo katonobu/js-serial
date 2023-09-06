@@ -63,7 +63,7 @@ type SendPortFunction = (deviePort:devicePortType, msg: Uint8Array, option:objec
 type ClosePortFunction = (devicePort:devicePortType)=>Promise<void>
 type FinalizeFunction = (opt:object) => Promise<void>
 
-export abstract class AbstructSerialPort{
+export abstract class AbstractSerialPort{
     abstract init:InitFunction
     abstract getDeviceKeyPortInfos:GetDeviceKeyPortInfosFunction
     abstract promptGrantAccess:PromptGrantAccessFunction

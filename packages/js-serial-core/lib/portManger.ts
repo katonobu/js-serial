@@ -4,7 +4,7 @@ import {
     compareKeyType, 
     deviceKeyPortInfoAvailableType,    
     MicroStore, 
-    AbstructSerialPort,
+    AbstractSerialPort,
 } from './AbstractSerialPort'
 
 interface rxLineNumType {
@@ -33,15 +33,15 @@ interface portStoreType{
     changeId:portIdType
 }
 
-export type AbstructDataHandlerFunction = (data:Uint8Array)=>any[]
-export abstract class AbstructDataHandler{
-    abstract handler:AbstructDataHandlerFunction
+export type AbstractDataHandlerFunction = (data:Uint8Array)=>any[]
+export abstract class AbstractDataHandler{
+    abstract handler:AbstractDataHandlerFunction
 }
 
 export type DelimiterDataHandlerOptions = {
     newLineCode:string | RegExp
 }
-export class DelimiterDataHandler extends AbstructDataHandler{
+export class DelimiterDataHandler extends AbstractDataHandler{
     private _lastLine:string
     private _delimiter:string | RegExp
     constructor(options:DelimiterDataHandlerOptions = {newLineCode:"\n"}){
@@ -68,13 +68,13 @@ export class PortManager{
     private _openCloseSttStore:MicroStore<boolean>[]
     private _rxLineBuffers:rxLineBuffType[][]
     private _rxLineNumStore:MicroStore<rxLineNumType>[]
-    private _serialPort:AbstructSerialPort
-    private _rxDataHandler:AbstructDataHandler
+    private _serialPort:AbstractSerialPort
+    private _rxDataHandler:AbstractDataHandler
     private _updateCount:number
 
     constructor(
-        serialPort:AbstructSerialPort,
-        rxDataHandler:AbstructDataHandler = new DelimiterDataHandler()
+        serialPort:AbstractSerialPort,
+        rxDataHandler:AbstractDataHandler = new DelimiterDataHandler()
     ){
         this._idToObj = []
         this._currentKeysCache  = []

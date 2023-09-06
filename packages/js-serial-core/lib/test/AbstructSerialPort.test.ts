@@ -1,7 +1,7 @@
 import { NodeMockSerialPort } from './NodeMockSerialPort'
 import { PortManager } from '../portManger';
 
-describe("AbstructSerialPort", () => {
+describe("AbstractSerialPort", () => {
     it("PortManager instance", async () => {
         const ns = new NodeMockSerialPort()
         const pm = new PortManager(ns)
