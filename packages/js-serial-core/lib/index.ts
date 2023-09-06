@@ -14,7 +14,7 @@ import {
     DelimiterDataHandlerOptions,
     DelimiterDataHandler,
     JsSerialBase,
-} from './portManger'
+} from './BaseSerialPort'
 
 export {
     JsSerialBase,

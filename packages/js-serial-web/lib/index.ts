@@ -1,5 +1,5 @@
 import {WebSerialPort} from './WebSerialPort'
-import {JsSerialBase, AbstractDataHandler, DelimiterDataHandler} from '../../js-serial-core/lib/portManger'
+import {JsSerialBase, AbstractDataHandler, DelimiterDataHandler} from '../../js-serial-core/lib/BaseSerialPort'
 
 export default class JsSerialWeb extends JsSerialBase{
     constructor(
