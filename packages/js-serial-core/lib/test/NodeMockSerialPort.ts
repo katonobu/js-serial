@@ -59,19 +59,27 @@ export class NodeMockSerialPort extends AbstractSerialPort{
     deletePort = ()=>{
         throw(new Error("js-serial-nodeMock dosen't support deletePort()"))
     }
-    // @ts-ignore
-    openPort = (dp, opt)=>Promise.resolve()
-    // @ts-ignore
-    receivePort = (deviePort, byteLength, timeoutMs, option) => {
+    openPort = (
+        // @ts-ignore
+        dp, opt
+    )=>Promise.resolve()
+    receivePort = (
+        // @ts-ignore
+        deviePort, byteLength, timeoutMs, option
+    ) => {
         return Promise.resolve()
     }
-    // @ts-ignore
-    sendPort = (deviePort, msg, option) => {
+    sendPort = (
+        // @ts-ignore
+        deviePort, msg, option
+    ) => {
         return Promise.resolve()
     }
 
-    // @ts-ignore
-    closePort = (dp)=>Promise.resolve()
+    closePort = (
+        // @ts-ignore
+        dp
+    )=>Promise.resolve()
     finalize = async (opt:object) => {
         if (NodeMockSerialPort.intervalId) {
             clearInterval(NodeMockSerialPort.intervalId)

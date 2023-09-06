@@ -90,8 +90,7 @@ export class WebSerialPort extends AbstractSerialPort{
             return dp.info
         }
     }
-    // @ts-ignore
-    openPort = async (dp, opt)=>{
+    openPort = async (dp:object, opt:object)=>{
         if (WebSerialPort.isNode) {
             throw(new Error("js-serial-web exected in node environment"))
         } else {
@@ -99,7 +98,8 @@ export class WebSerialPort extends AbstractSerialPort{
             let errStr: string = '';
             if (port) {
                 try {
-                    await port.open(opt)
+                    const openOption = opt as SerialOptions
+                    await port.open(openOption)
                 } catch (e) {
                     if (e instanceof Error) {
                         errStr = e.message;
@@ -205,8 +205,7 @@ export class WebSerialPort extends AbstractSerialPort{
         }
         return errStr;
     }
-    // @ts-ignore
-    closePort = async (dp)=>{
+    closePort = async (dp:object)=>{
         if (WebSerialPort.isNode) {
             throw(new Error("js-serial-web exected in node environment"))
         } else {
