@@ -32,12 +32,8 @@ describe("PnpPortLen", () => {
     afterAll(async () => {
         await deleteAll(page)
         await clickAndWait(page, '#finalize', 'finalize', 0)
+        await page.reload();
     });
-    /*
-    it('dummy', async () => {
-        expect(1).toBe(1)
-    })
-    */
   
     it('Plug and play', async () => {
         // cancelが押されるまでrequestPort Dialogを出し続ける。

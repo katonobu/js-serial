@@ -9,6 +9,11 @@ const openningMessage = [
     "  登録済ポートの選択",
     "  キャンセル(create()繰り返し終了)",
 ]
+/*
+test('dummy', () => {
+  expect(1).toBe(1);
+});
+*/
 describe("CreatePortLen", () => {
     beforeAll(async () => {
         const url = 'http://localhost:5173/'
@@ -30,6 +35,7 @@ describe("CreatePortLen", () => {
     afterAll(async () => {
         await deleteAll(page)
         await clickAndWait(page, '#finalize', 'finalize', 0)
+        await page.reload();
     });
 
     it('just start', async () => {
@@ -47,6 +53,13 @@ describe("CreatePortLen", () => {
         let expPortsNum = portChange.rsp.length
         let prevPortChangeId = portChange.rsp.res.changeId
         let cancelled = false
+        let newPortSttString = "□"
+        let existingPortSttString = "□"
+        let cancelSttString = "□"
+        await page.evaluate((sttStr) => {
+            document.title = sttStr
+        }, newPortSttString + existingPortSttString + cancelSttString)
+
         await page.evaluate((value) => {document.querySelector('#arg').innerText = value;}, "{}");
         do {
             const createObj = await clickAndWait(page, '#create',"create", 0)
@@ -57,6 +70,7 @@ describe("CreatePortLen", () => {
                 if (0 < portChange.rsp.res.attached.length){
                     // selected new port
                     expPortsNum += portChange.rsp.res.attached.length
+                    newPortSttString = "✔"                    
                 }
                 if (0 < portChange.rsp.res.detached.length){
                     // delete existing port, but this scenrio may come here.
@@ -66,13 +80,18 @@ describe("CreatePortLen", () => {
                 if (createObj.rsp.id === -1){
                     // cancel selected
                     cancelled = true
+                    cancelSttString = "✔"
                 } else {
                     // selected already registrated port
+                    existingPortSttString = "✔"
                 }
             }
             const currentPortsNum = portChange.rsp.length
             expect(currentPortsNum).toBe(expPortsNum)
             expPortsNum = currentPortsNum
+            await page.evaluate((sttStr) => {
+                document.title = sttStr
+            }, newPortSttString + existingPortSttString + cancelSttString)
         }while(cancelled === false)
     }, 3600*1000);
 });
