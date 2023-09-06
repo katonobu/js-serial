@@ -1,6 +1,6 @@
 import {
     AbstructSerialPort, deviceKeyPortInfoAvailableType,receivePortOptionType
-} from "../../js-serial-core/lib/AbstructSerialPort";
+} from "../../js-serial-core/lib/AbstractSerialPort";
 
 export class WebSerialPort extends AbstructSerialPort{
     // https://ja.stackoverflow.com/questions/2046/javascript%E5%AE%9F%E8%A1%8C%E7%92%B0%E5%A2%83%E3%81%AE%E5%88%A4%E5%AE%9A%E6%96%B9%E6%B3%95%E3%81%AB%E3%81%A4%E3%81%84%E3%81%A6

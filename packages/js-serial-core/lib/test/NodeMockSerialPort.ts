@@ -1,6 +1,6 @@
 import {
     AbstructSerialPort
-} from "../AbstructSerialPort";
+} from "../AbstractSerialPort";
 import { SerialPortMock } from 'serialport'
 import { MockBinding } from '@serialport/binding-mock'
 

@@ -1,6 +1,6 @@
 import {
     AbstructSerialPort
-} from "../../js-serial-core/lib/AbstructSerialPort";
+} from "../../js-serial-core/lib/AbstractSerialPort";
 import { SerialPort} from 'serialport'
 
 export class NodeSerialPort extends AbstructSerialPort{
