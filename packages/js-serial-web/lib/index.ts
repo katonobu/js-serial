@@ -1,2 +1,4 @@
 import {WebSerialPort} from './WebSerialPort'
-export default WebSerialPort
+import {PortManager} from '../../js-serial-core/lib/portManger'
+
+export {PortManager, WebSerialPort}

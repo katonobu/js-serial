@@ -32,19 +32,49 @@ interface portStoreType{
     detached:portIdType[];
     changeId:portIdType
 }
+
+export type AbstructDataHandlerFunction = (data:Uint8Array)=>any[]
+export abstract class AbstructDataHandler{
+    abstract handler:AbstructDataHandlerFunction
+}
+
+export type DelimiterDataHandlerOptions = {
+    newLineCode:string | RegExp
+}
+export class DelimiterDataHandler extends AbstructDataHandler{
+    private _lastLine:string
+    private _delimiter:string | RegExp
+    constructor(options:DelimiterDataHandlerOptions = {newLineCode:"\n"}){
+        super()
+        this._lastLine = ''
+        this._delimiter = options.newLineCode
+    }
+    handler = (data:Uint8Array):string[] => {
+        let lines = (this._lastLine + new TextDecoder().decode(data)).split(this._delimiter)
+        const lastItem:string | undefined = lines.pop()
+        if (typeof lastItem === 'string') {
+          this._lastLine = lastItem
+        } else {
+          this._lastLine = ""
+        }
+        return lines
+    }
+}
+
 export class PortManager{
-    private _idToObj:deviceKeyPortInfoAvailableType[] // 御本尊
-    private _currentKeysCache:compareKeyType[] // 変化比較用Cache
+    private _idToObj:deviceKeyPortInfoAvailableType[]
+    private _currentKeysCache:compareKeyType[]
     private _portStore:MicroStore<portStoreType>
     private _openCloseSttStore:MicroStore<boolean>[]
     private _rxLineBuffers:rxLineBuffType[][]
     private _rxLineNumStore:MicroStore<rxLineNumType>[]
     private _serialPort:AbstructSerialPort
+    private _rxDataHandler:AbstructDataHandler
     private _updateCount:number
-    private _lastLine:string
 
     constructor(
-        serialPort:AbstructSerialPort
+        serialPort:AbstructSerialPort,
+        rxDataHandler:AbstructDataHandler = new DelimiterDataHandler()
     ){
         this._idToObj = []
         this._currentKeysCache  = []
@@ -53,8 +83,8 @@ export class PortManager{
         this._rxLineBuffers = []
         this._rxLineNumStore = []
         this._serialPort = serialPort
+        this._rxDataHandler = rxDataHandler
         this._updateCount = 0
-        this._lastLine = ''
     }
 
     async init(opt:{pollingIntervalMs?:number}):Promise<void> {
@@ -84,7 +114,7 @@ export class PortManager{
     }
     async openPort(id:portIdType, option:any/*openOption*/):Promise<string> {
         try {
-            const result = await this._serialPort.openPort(this._idToObj[id].port, option)
+            await this._serialPort.openPort(this._idToObj[id].port, option)
             this._openCloseSttStore[id].update(true)
             return 'OK'
         }catch (e){
@@ -135,7 +165,7 @@ export class PortManager{
     }
     async closePort(id:portIdType):Promise<string> {
         try {
-            const result = await this._serialPort.closePort(this._idToObj[id].port)
+            await this._serialPort.closePort(this._idToObj[id].port)
             this._openCloseSttStore[id].update(false)
             return 'OK'
         }catch (e){
@@ -292,20 +322,9 @@ export class PortManager{
         }
     }
 
-    _lineParser(data:Uint8Array, newLineCode: string | RegExp = "\n"/*/\r\n|\r|\n/*/):string[]{
-        let lines = (this._lastLine + new TextDecoder().decode(data)).split(newLineCode)
-        const lastItem:string | undefined = lines.pop()
-        if (typeof lastItem === 'string') {
-          this._lastLine = lastItem
-        } else {
-          this._lastLine = ""
-        }
-        return lines
-    }
-
     updateRx(id:number, updateData:Uint8Array):boolean {
         if (id < this._rxLineBuffers.length) {
-            const updatedLines = this._lineParser(updateData)
+            const updatedLines = this._rxDataHandler.handler(updateData)
             if (0 < updatedLines.length) {
                 const ts:number = (new Date()).getTime()
                 const buff = this._rxLineBuffers[id]

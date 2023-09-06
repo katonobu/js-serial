@@ -20,7 +20,7 @@ export type deviceKeyPortInfoAvailableType = {
     available:boolean;
 }
 
-type receivePortOptionType = {
+export type receivePortOptionType = {
     updateRx:(arg0: Uint8Array)=>boolean;
     bufferSize?: number
 }
