@@ -1,8 +1,11 @@
-import {
-    AbstractSerialPort
-} from "./AbstractSerialPort";
 import { SerialPortMock } from 'serialport'
 import { MockBinding } from '@serialport/binding-mock'
+import {
+    JsSerialBase, 
+    AbstractSerialPort,
+    AbstractDataHandler, 
+    DelimiterDataHandler
+} from './index'
 
 export class NodeMockSerialPort extends AbstractSerialPort{
     private static portCount = 0
@@ -86,5 +89,13 @@ export class NodeMockSerialPort extends AbstractSerialPort{
             NodeMockSerialPort.intervalId = undefined
             NodeMockSerialPort.portManager = undefined
         }
+    }
+}
+export default class JsSerialNodeMock extends JsSerialBase{
+    constructor(
+        rxDataHandler:AbstractDataHandler = new DelimiterDataHandler()
+    ){  
+        const nsp = new NodeMockSerialPort()
+        super(nsp, rxDataHandler)
     }
 }

@@ -1,117 +1,109 @@
 import { NodeMockSerialPort } from '../NodeMockSerialPort'
 import { JsSerialBase } from '../BaseSerialPort';
+import JsSerialNodeMock from '../NodeMockSerialPort'
 
 describe("AbstractSerialPort", () => {
     it("PortManager instance", async () => {
-        const ns = new NodeMockSerialPort()
-        const pm = new JsSerialBase(ns)
-        expect(pm).toBeInstanceOf(JsSerialBase)
+        const jsnm = new JsSerialNodeMock()
+        expect(jsnm).toBeInstanceOf(JsSerialBase)
     })
 
     it("PortManager portStore subscribe/unsubscribe", async () => {
-        const ns = new NodeMockSerialPort()
-        const pm = new JsSerialBase(ns)
+        const jsnm = new JsSerialNodeMock()
 
-        await pm.init({})
-        expect(pm.getSubscribeCbLen()).toBe(0)
-        let unsubscribe0 = pm.subscribePorts(()=>{})
-        expect(pm.getSubscribeCbLen()).toBe(1)
-        let unsubscribe1 = pm.subscribePorts(()=>{})
-        expect(pm.getSubscribeCbLen()).toBe(2)
+        await jsnm.init({})
+        expect(jsnm.getSubscribeCbLen()).toBe(0)
+        let unsubscribe0 = jsnm.subscribePorts(()=>{})
+        expect(jsnm.getSubscribeCbLen()).toBe(1)
+        let unsubscribe1 = jsnm.subscribePorts(()=>{})
+        expect(jsnm.getSubscribeCbLen()).toBe(2)
         unsubscribe1()
-        expect(pm.getSubscribeCbLen()).toBe(1)
+        expect(jsnm.getSubscribeCbLen()).toBe(1)
         unsubscribe0()
-        expect(pm.getSubscribeCbLen()).toBe(0)
-        await pm.finalize()
+        expect(jsnm.getSubscribeCbLen()).toBe(0)
+        await jsnm.finalize()
     })
 
     it("PortManager init", async () => {
-        const ns = new NodeMockSerialPort()
-        const pm = new JsSerialBase(ns)
+        const jsnm = new JsSerialNodeMock()
 
-        const initretval = pm.init({})
+        const initretval = jsnm.init({})
         expect(initretval).toBeInstanceOf(Promise)
         expect(await initretval).toBe(undefined)
-        await pm.finalize()
+        await jsnm.finalize()
     })
 
     it("PortManager finalize", async () => {
-        const ns = new NodeMockSerialPort()
-        const pm = new JsSerialBase(ns)
+        const jsnm = new JsSerialNodeMock()
 
-        await pm.init({})
-        const finalizeRetval = pm.finalize()
+        await jsnm.init({})
+        const finalizeRetval = jsnm.finalize()
         expect(finalizeRetval).toBeInstanceOf(Promise)
         expect(await finalizeRetval).toBe(undefined)
     })
 
     it("PortManager updateRequest basic", async () => {
-        const ns = new NodeMockSerialPort()
-        const pm = new JsSerialBase(ns)
-        await pm.init({})
+        const jsnm = new JsSerialNodeMock()
+        await jsnm.init({})
         
-        const update = pm.updateRequest()
+        const update = jsnm.updateRequest()
         expect(update).toBeInstanceOf(Promise)
         expect(await update).toBe(undefined)
-        await pm.finalize()
+        await jsnm.finalize()
     })
 
     it("PortManager callback is not called if port is empty ", async () => {
-        const ns = new NodeMockSerialPort()
-        const pm = new JsSerialBase(ns)
+        const jsnm = new JsSerialNodeMock()
 
         const mockCallbackNotCalled = jest.fn()
-        let unsubscribe = pm.subscribePorts(mockCallbackNotCalled)
-        await pm.init({})
+        let unsubscribe = jsnm.subscribePorts(mockCallbackNotCalled)
+        await jsnm.init({})
         expect(mockCallbackNotCalled).toHaveBeenCalledTimes(0);
         unsubscribe()
-        await pm.finalize()
+        await jsnm.finalize()
     })
 
     it("PortManager callback is called if port is added ", async () => {
-        const ns = new NodeMockSerialPort()
-        const pm = new JsSerialBase(ns)
+        const jsnm = new JsSerialNodeMock()
 
         const mockCallbackMayCalledOnce = jest.fn()
-        let unsubscribe = pm.subscribePorts(mockCallbackMayCalledOnce)
+        let unsubscribe = jsnm.subscribePorts(mockCallbackMayCalledOnce)
 
         NodeMockSerialPort.addPort()
-        await pm.init({})
+        await jsnm.init({})
         expect(mockCallbackMayCalledOnce).toHaveBeenCalledTimes(1);
 
         NodeMockSerialPort.addPort()
-        await pm.updateRequest()
+        await jsnm.updateRequest()
         expect(mockCallbackMayCalledOnce).toHaveBeenCalledTimes(2);
 
         unsubscribe()
-        await pm.finalize()
+        await jsnm.finalize()
         NodeMockSerialPort.reset()
     })
 
 
     it("PortManager subscribe function called onece even if updateRequest() called twice on ports are not changed", async () => {
-        const ns = new NodeMockSerialPort()
-        const pm = new JsSerialBase(ns)
+        const jsnm = new JsSerialNodeMock()
 
         const mockCallbackMayCalledOnce = jest.fn()
-        let unsubscribe = pm.subscribePorts(mockCallbackMayCalledOnce)
+        let unsubscribe = jsnm.subscribePorts(mockCallbackMayCalledOnce)
 
         NodeMockSerialPort.addPort()
-        await pm.init({})
+        await jsnm.init({})
         expect(mockCallbackMayCalledOnce).toHaveBeenCalledTimes(1);
 
         // NodeMockSerialPort.addPort() // don't add the port, this skips callback
-        await pm.updateRequest()
+        await jsnm.updateRequest()
         expect(mockCallbackMayCalledOnce).toHaveBeenCalledTimes(1);
 
         unsubscribe()
-        await pm.finalize()
+        await jsnm.finalize()
         NodeMockSerialPort.reset()
     })
 
     it("PortManager Add Port pollig check", async () => {
-        const ns = new NodeMockSerialPort()
-        const pm = new JsSerialBase(ns)
+        const jsnm = new JsSerialNodeMock()
 
         NodeMockSerialPort.addPort()
 
@@ -131,7 +123,7 @@ describe("AbstractSerialPort", () => {
                 }, pollingIntervalMs * 3)
                 const mockCallbackMayCalledTwice = jest.fn()
                 mockCallbackMayCalledTwice.mockImplementation(()=>{
-                    const ports = pm.getPorts()
+                    const ports = jsnm.getPorts()
 //                    console.log("called ", callCount, JSON.stringify(ports))
                     expect(ports.curr.length).toBe(callCount + 1)
                     expect(ports.attached.length).toBe(1)
@@ -147,20 +139,19 @@ describe("AbstractSerialPort", () => {
                         resolve(0)
                     }
                 })
-                const unsubscribe = pm.subscribePorts(mockCallbackMayCalledTwice)
-                pm.init({pollingIntervalMs})
+                const unsubscribe = jsnm.subscribePorts(mockCallbackMayCalledTwice)
+                jsnm.init({pollingIntervalMs})
             })
         } catch(e) {
             console.log(e)
             expect(e).toBe(undefined)
         }
 
-        await pm.finalize()
+        await jsnm.finalize()
         NodeMockSerialPort.reset()
     })
     it("PortManager Delete Port pollig check", async () => {
-        const ns = new NodeMockSerialPort()
-        const pm = new JsSerialBase(ns)
+        const jsnm = new JsSerialNodeMock()
 
         const pollingIntervalMs = 100
         await new Promise((resolve) => {
@@ -169,7 +160,7 @@ describe("AbstractSerialPort", () => {
     
             const mockCallbackMayCalledInit = jest.fn()
             mockCallbackMayCalledInit.mockImplementation(()=>{
-                const ports = pm.getPorts()
+                const ports = jsnm.getPorts()
                 expect(ports.curr.length).toBe(2)
                 expect(ports.attached.length).toBe(2)
                 expect(ports.attached[0]).toBe(0)
@@ -179,8 +170,8 @@ describe("AbstractSerialPort", () => {
                 unsubscribeInit()
                 resolve(0)
             })
-            const unsubscribeInit = pm.subscribePorts(mockCallbackMayCalledInit)
-            pm.init({pollingIntervalMs})
+            const unsubscribeInit = jsnm.subscribePorts(mockCallbackMayCalledInit)
+            jsnm.init({pollingIntervalMs})
         })
 
         try {
@@ -198,7 +189,7 @@ describe("AbstractSerialPort", () => {
                 }, pollingIntervalMs * 3)
                 const mockCallbackMayCalledOnce = jest.fn()
                 mockCallbackMayCalledOnce.mockImplementation(()=>{
-                    const ports = pm.getPorts()
+                    const ports = jsnm.getPorts()
 //                    console.log("called ", JSON.stringify(ports))
                     expect(ports.curr.length).toBe(0)
                     expect(ports.attached.length).toBe(0)
@@ -213,15 +204,15 @@ describe("AbstractSerialPort", () => {
                     unsubscribe()
                     resolve(0)
                 })
-                const unsubscribe = pm.subscribePorts(mockCallbackMayCalledOnce)
+                const unsubscribe = jsnm.subscribePorts(mockCallbackMayCalledOnce)
             })
         } catch(e) {
             console.log(e)
-            console.log("timeout ", JSON.stringify(pm.getPorts()))
+            console.log("timeout ", JSON.stringify(jsnm.getPorts()))
             expect(e).toBe(undefined)
         }
 
-        await pm.finalize()
+        await jsnm.finalize()
         NodeMockSerialPort.reset()
 
     })
