@@ -1,7 +1,7 @@
 import { NodeSerialPort } from "./NodeSerialPort";
-import {PortManager, AbstractDataHandler, DelimiterDataHandler} from '../../js-serial-core/lib/portManger'
+import {JsSerialBase, AbstractDataHandler, DelimiterDataHandler} from '../../js-serial-core/lib/portManger'
 
-export default class JsSerialNode extends PortManager{
+export default class JsSerialNode extends JsSerialBase{
     constructor(
         rxDataHandler:AbstractDataHandler = new DelimiterDataHandler()
     ){  

@@ -61,7 +61,7 @@ export class DelimiterDataHandler extends AbstractDataHandler{
     }
 }
 
-export class PortManager{
+export class JsSerialBase{
     private _idToObj:deviceKeyPortInfoAvailableType[]
     private _currentKeysCache:compareKeyType[]
     private _portStore:MicroStore<portStoreType>

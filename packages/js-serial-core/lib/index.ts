@@ -13,11 +13,11 @@ import {
     AbstractDataHandler,
     DelimiterDataHandlerOptions,
     DelimiterDataHandler,
-    PortManager,
+    JsSerialBase,
 } from './portManger'
 
 export {
-    PortManager,
+    JsSerialBase,
     AbstractDataHandlerFunction,
     AbstractDataHandler,
 
