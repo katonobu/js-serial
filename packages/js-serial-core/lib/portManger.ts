@@ -2,31 +2,46 @@ import {
     portIdType, 
     portInfoType, 
     compareKeyType, 
-    deviceKeyPortInfoType ,
     deviceKeyPortInfoAvailableType,    
     MicroStore, 
-    AbstructSerialPort
+    AbstructSerialPort,
 } from './AbstructSerialPort'
 
+interface rxLineNumType {
+    totalLines:number;
+    updatedLines:number
+}
 
-export interface portStoreType{
+interface rxLineUpdateType {
+    ts:number,
+    data:any,
+}
+
+interface rxLineBuffType extends rxLineUpdateType {
+    id:number // sequencial id in the buffer
+}
+
+interface rxLinesType {
+    data:rxLineBuffType[];
+    total:number;
+}
+
+interface portStoreType{
     curr:portInfoType[];
     attached:portIdType[];
     detached:portIdType[];
     changeId:portIdType
 }
-export interface keyCompResultType{
-    latest:deviceKeyPortInfoType[];
-    attached:compareKeyType[];
-    detached:compareKeyType[];
-}
-
 export class PortManager{
     private _idToObj:deviceKeyPortInfoAvailableType[] // 御本尊
     private _currentKeysCache:compareKeyType[] // 変化比較用Cache
     private _portStore:MicroStore<portStoreType>
+    private _openCloseSttStore:MicroStore<boolean>[]
+    private _rxLineBuffers:rxLineBuffType[][]
+    private _rxLineNumStore:MicroStore<rxLineNumType>[]
     private _serialPort:AbstructSerialPort
     private _updateCount:number
+    private _lastLine:string
 
     constructor(
         serialPort:AbstructSerialPort
@@ -34,8 +49,12 @@ export class PortManager{
         this._idToObj = []
         this._currentKeysCache  = []
         this._portStore = new MicroStore<portStoreType>({curr:[],attached:[],detached:[],changeId:0})
+        this._openCloseSttStore = []
+        this._rxLineBuffers = []
+        this._rxLineNumStore = []
         this._serialPort = serialPort
         this._updateCount = 0
+        this._lastLine = ''
     }
 
     async init(opt:{pollingIntervalMs?:number}):Promise<void> {
@@ -54,15 +73,80 @@ export class PortManager{
         }
     }
     async deletePort(id:portIdType):Promise<portInfoType> {
-        const ret = await this._serialPort.deletePort(this._idToObj[id])
-        this.updateRequest()
-        return ret
+        try {
+            const ret = await this._serialPort.deletePort(this._idToObj[id])
+            this.updateRequest()
+            return ret
+        } catch (e) {
+            console.log(e)
+            return {id:-1, pid:-1, vid:-1}
+        }
     }
-    async openPort(id:portIdType, option:any/*openOption*/):Promise<void> {
-        return this._serialPort.openPort(this._idToObj[id].port, option)
+    async openPort(id:portIdType, option:any/*openOption*/):Promise<string> {
+        try {
+            const result = await this._serialPort.openPort(this._idToObj[id].port, option)
+            this._openCloseSttStore[id].update(true)
+            return 'OK'
+        }catch (e){
+            if (e instanceof Error){
+                return e.toString()
+            } else if (typeof e === 'string'){
+                return e
+            } else {
+                throw e
+            }
+        }
     }
-    async closePort(id:portIdType):Promise<void> {
-        return this._serialPort.closePort(this._idToObj[id].port)
+    async receivePort(id:portIdType, byteLength: number, timeoutMs: number, option:object): Promise<any> {
+        try {
+            const receivePromise = this._serialPort.receivePort(
+                this._idToObj[id].port,
+                byteLength,
+                timeoutMs,
+                {...option, updateRx:(updateData:Uint8Array):boolean => this.updateRx(id, updateData)}
+            )
+            if (byteLength === 0 && timeoutMs === 0) {
+                return 'OK'
+            } else {
+                return await receivePromise
+            }
+        }catch (e){
+            if (e instanceof Error){
+                return e.toString()
+            } else if (typeof e === 'string'){
+                return e
+            } else {
+                throw e
+            }
+        }
+    }
+    async sendPort(id:portIdType, msg: Uint8Array, option:object): Promise<string> {
+        try {
+            return await this._serialPort.sendPort(this._idToObj[id].port, msg, option)
+        }catch (e){
+            if (e instanceof Error){
+                return e.toString()
+            } else if (typeof e === 'string'){
+                return e
+            } else {
+                throw e
+            }
+        }
+    }
+    async closePort(id:portIdType):Promise<string> {
+        try {
+            const result = await this._serialPort.closePort(this._idToObj[id].port)
+            this._openCloseSttStore[id].update(false)
+            return 'OK'
+        }catch (e){
+            if (e instanceof Error){
+                return e.toString()
+            } else if (typeof e === 'string'){
+                return e
+            } else {
+                throw e
+            }
+        }
     }
     async finalize():Promise<void> {
         return this._serialPort.finalize({})
@@ -142,8 +226,12 @@ export class PortManager{
                     }
                 }
             })
-            /*ToDo*/
-            // port追加処理:portOpenStt等
+            attachedIds.forEach((id)=> {
+                this._openCloseSttStore[id] = new MicroStore(false)
+                this._rxLineBuffers[id] = []
+                this._rxLineNumStore[id] = new MicroStore({totalLines:0, updatedLines:0})
+
+            })
         }
         if (0 < detachedKeys.length) {
             detachedKeys.forEach((key)=>{
@@ -154,9 +242,10 @@ export class PortManager{
                 } else {
                     // deleteとマークされたのにすでにdelete済
                 }
-                /*ToDo*/
-                // port削除処理(callbackの無効化関数への置き換え等)
             })
+            /*ToDo*/
+            // port削除処理(callbackの無効化関数への置き換え等)
+            detachedIds.forEach((id)=> this._openCloseSttStore[id].update(false))
         }
         // update related variables from idToObj
         if (0 < attachedKeys.length || 0 < detachedKeys.length) {
@@ -181,11 +270,76 @@ export class PortManager{
         return this._portStore.getCallbacksLen()
     }
     subscribeOpenStt(id:portIdType, cb:()=>void):()=>void {
-        return cb
+        if (id < this._openCloseSttStore.length) {
+            return this._openCloseSttStore[id].subscribe(cb)
+        } else {
+            return ()=>{}
+        }
     }
     getOpenStt(id:portIdType):boolean {
-        return 0 < id
+        if (id < this._openCloseSttStore.length) {
+            return this._openCloseSttStore[id].get()
+        } else {
+            return false
+        }
     }
+
+    subscribeRxLineNum(id:number, cb:()=>void):()=>void {
+        if (id < this._rxLineNumStore.length) {
+            return this._rxLineNumStore[id].subscribe(cb)
+        } else {
+            return ()=>{}
+        }
+    }
+
+    _lineParser(data:Uint8Array, newLineCode: string | RegExp = "\n"/*/\r\n|\r|\n/*/):string[]{
+        let lines = (this._lastLine + new TextDecoder().decode(data)).split(newLineCode)
+        const lastItem:string | undefined = lines.pop()
+        if (typeof lastItem === 'string') {
+          this._lastLine = lastItem
+        } else {
+          this._lastLine = ""
+        }
+        return lines
+    }
+
+    updateRx(id:number, updateData:Uint8Array):boolean {
+        if (id < this._rxLineBuffers.length) {
+            const updatedLines = this._lineParser(updateData)
+            if (0 < updatedLines.length) {
+                const ts:number = (new Date()).getTime()
+                const buff = this._rxLineBuffers[id]
+                const prevLen = buff.length
+                const addLines = updatedLines.map((data, idx)=>({data:data.replace(/\r\n|\r|\n/,''), ts, id:idx+prevLen}))
+    //            console.log(id, ts, buff.length, updateData.length)
+                this._rxLineBuffers[id] = buff.concat(addLines)
+                this._rxLineNumStore[id].update({totalLines:this._rxLineBuffers[id].length, updatedLines:updateData.length})
+            }
+            return true
+        } else {
+            return false
+        }
+    }
+    getRxLineNum(id:number):rxLineNumType {
+        if (id < this._rxLineNumStore.length){
+            return this._rxLineNumStore[id].get()
+        } else {
+            return { totalLines:0, updatedLines:0}
+        }
+    }    
+    getRxLines(id:number, start:number, end:number):rxLinesType {
+        if (id < this._rxLineBuffers.length) {
+            const buff = this._rxLineBuffers[id]
+            const len = buff.length
+            const startIndex = start
+            const endIndex = end === 0 ? len:end
+            const slicedData = buff.slice(startIndex, endIndex)
+            return { data:slicedData, total:buff.length}
+        } else {
+            return { data:[], total:0}
+        }
+    }
+
 }
 
 

@@ -5,9 +5,9 @@ export type portInfoType = {
     vid:number,
     portName?:string
 }
-export type devicePortType = object /* SerialPort */
+type devicePortType = object /* SerialPort */
 export type compareKeyType = string | devicePortType
-export type deviceKeyPortInfoType = {
+type deviceKeyPortInfoType = {
     key:compareKeyType,
     info:portInfoType,
     port?:devicePortType
@@ -18,6 +18,11 @@ export type deviceKeyPortInfoAvailableType = {
     info:portInfoType;
     port:devicePortType;
     available:boolean;
+}
+
+type receivePortOptionType = {
+    updateRx:(arg0: Uint8Array)=>boolean;
+    bufferSize?: number
 }
 
 export class MicroStore<T> {
@@ -47,14 +52,16 @@ export class MicroStore<T> {
     }
 }
 
-export type InitFunction = (opt:object) => Promise<void>
-export type GetDeviceKeyPortInfosFunction = () => Promise<deviceKeyPortInfoType[]>
-export type PromptGrantAccessFunction = (option:object/*createOption*/)=>Promise<devicePortType>
-export type CreatePortFunction = (path:string)=>devicePortType
-export type DeletePortFunction = (devicePort:deviceKeyPortInfoAvailableType)=>Promise<portInfoType>
-export type OpenPortFunction = (devicePort:devicePortType, option:any/*openOption*/)=>Promise<void>
-export type ClosePortFunction = (devicePort:devicePortType)=>Promise<void>
-export type FinalizeFunction = (opt:object) => Promise<void>
+type InitFunction = (opt:object) => Promise<void>
+type GetDeviceKeyPortInfosFunction = () => Promise<deviceKeyPortInfoType[]>
+type PromptGrantAccessFunction = (option:object/*createOption*/)=>Promise<devicePortType>
+type CreatePortFunction = (path:string)=>devicePortType
+type DeletePortFunction = (devicePort:deviceKeyPortInfoAvailableType)=>Promise<portInfoType>
+type OpenPortFunction = (devicePort:devicePortType, option:any/*openOption*/)=>Promise<void>
+type ReceivePortFunction = (deviePort:devicePortType, byteLength: number, timeoutMs: number, option:receivePortOptionType)=>Promise<any>
+type SendPortFunction = (deviePort:devicePortType, msg: Uint8Array, option:object)=>Promise<any>
+type ClosePortFunction = (devicePort:devicePortType)=>Promise<void>
+type FinalizeFunction = (opt:object) => Promise<void>
 
 export abstract class AbstructSerialPort{
     abstract init:InitFunction
@@ -63,6 +70,8 @@ export abstract class AbstructSerialPort{
     abstract createPort:CreatePortFunction
     abstract deletePort:DeletePortFunction
     abstract openPort:OpenPortFunction
+    abstract receivePort:ReceivePortFunction
+    abstract sendPort:SendPortFunction
     abstract closePort:ClosePortFunction
     abstract finalize:FinalizeFunction
 }

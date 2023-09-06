@@ -49,6 +49,15 @@ export class NodeSerialPort extends AbstructSerialPort{
     // @ts-ignore
     openPort = (dp, opt)=>Promise.resolve()
     // @ts-ignore
+    receivePort = (deviePort, byteLength, timeoutMs, option) => {
+        return Promise.resolve()
+    }
+    // @ts-ignore
+    sendPort = (deviePort, msg, option) => {
+        return Promise.resolve()
+    }
+
+    // @ts-ignore
     closePort = (dp)=>Promise.resolve()
     finalize = async (opt:object) => {
         if (NodeSerialPort.intervalId) {

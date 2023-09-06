@@ -1,5 +1,5 @@
 import {
-    AbstructSerialPort, deviceKeyPortInfoAvailableType
+    AbstructSerialPort, deviceKeyPortInfoAvailableType,receivePortOptionType
 } from "../../js-serial-core/lib/AbstructSerialPort";
 
 export class WebSerialPort extends AbstructSerialPort{
@@ -8,8 +8,16 @@ export class WebSerialPort extends AbstructSerialPort{
     private static isNode:boolean = (typeof process !== "undefined" && typeof require !== "undefined")
 
     private callUpdateRequest:(()=>void)|undefined
+    private _closeReq:boolean
+    private _reader:
+    | ReadableStreamDefaultReader<Uint8Array>
+    | ReadableStreamBYOBReader
+    | undefined
+
     constructor(){
         super();
+        this._closeReq = false
+        this._reader = undefined
     }
 
     init = async (opt:object) => {
@@ -77,15 +85,156 @@ export class WebSerialPort extends AbstructSerialPort{
                 errStr = 'specified port has been invalid';
             }
             if (errStr) {
-                console.error(errStr);
+                throw(new Error(errStr))
             }
             return dp.info
         }
     }
     // @ts-ignore
-    openPort = (dp, opt)=>Promise.resolve()
+    openPort = async (dp, opt)=>{
+        if (WebSerialPort.isNode) {
+            throw(new Error("js-serial-web exected in node environment"))
+        } else {
+            const port = dp as SerialPort
+            let errStr: string = '';
+            if (port) {
+                try {
+                    await port.open(opt)
+                } catch (e) {
+                    if (e instanceof Error) {
+                        errStr = e.message;
+                    } else {
+                        errStr = 'Open Error';
+                    }
+                }
+            } else {
+                errStr = 'specified port has been invalid';
+            }
+            if (errStr) {
+                throw(new Error(errStr))
+            }
+        }
+    }
+    receivePort = async (dp:object, byteLength:number, timeoutMs:number, option: receivePortOptionType) => {
+        const port = dp as SerialPort
+        if (byteLength === 0 && timeoutMs === 0) {
+            // read infinit until close
+            const { updateRx, bufferSize = 8 * 1024 /* 8KB */ } = option
+            // if try to close, this._closeReq become true
+            while (!this._closeReq && port && port.readable) {
+                try {
+                    try {
+                        this._reader = port.readable.getReader({ mode: 'byob' });
+                    } catch {
+                        this._reader = port.readable.getReader();
+                    }
+
+                    let buffer = null;
+                    for (; ;) {
+                        // eslint-disable-next-line
+                        const { value, done } = await (async () => {
+                            if (this._reader instanceof ReadableStreamBYOBReader) {
+                                if (!buffer) {
+                                    buffer = new ArrayBuffer(bufferSize);
+                                }
+                                const { value, done } = await this._reader.read(
+                                    new Uint8Array(buffer, 0, bufferSize)
+                                );
+                                buffer = value?.buffer;
+                                return { value, done };
+                            } else {
+                                if (this._reader) {
+                                    return await this._reader.read();
+                                } else {
+                                    return { value: null, done: true };
+                                }
+                            }
+                        })();
+
+                        if (value) {
+                            updateRx(value)
+                        }
+                        if (done) {
+                            break;
+                        }
+                    }
+                } catch (e) {
+                    console.error(e);
+                } finally {
+                    if (this._reader) {
+                        this._reader.releaseLock();
+                        this._reader = undefined;
+                    }
+                }
+            }
+
+            if (!this._closeReq) {
+                try {
+                    await this.closePort(port)
+                } catch (e) {
+                    console.error(e);
+                }
+            } else {
+                this._closeReq = false
+            }
+        } else {
+            // read until specified byte reaches or timeout.
+            // ToDo:実装する
+        }
+    }
+    sendPort = async (
+        dp:object,
+        msg:Uint8Array,
+        // @ts-ignore
+        option:any
+    ) => {
+        const port = dp as SerialPort
+        let errStr: string = '';
+        if (port) {
+            if (port.writable) {
+                try {
+                    const writer = port.writable.getWriter();
+                    await writer.write(msg);
+                    writer.releaseLock();
+                } catch (e) {
+                    errStr = 'Error while writing message.';
+                }
+            } else {
+                errStr = 'port is not writable';
+            }
+        }
+        return errStr;
+    }
     // @ts-ignore
-    closePort = (dp)=>Promise.resolve()
+    closePort = async (dp)=>{
+        if (WebSerialPort.isNode) {
+            throw(new Error("js-serial-web exected in node environment"))
+        } else {
+            const port = dp as SerialPort
+            let errStr: string = '';
+            if (port) {
+                this._closeReq = true
+                if (this._reader) {
+                    await this._reader.cancel()
+                }
+                try {
+                    await port.close()
+                } catch (e) {
+                    if (e instanceof Error) {
+                        errStr = e.message;
+                    } else {
+                        errStr = 'Close Error';
+                    }
+                }
+                this._closeReq = false
+            } else {
+                errStr = 'specified port has been invalid';
+            }
+            if (errStr) {
+                throw(new Error(errStr))
+            }
+        }
+    }
     finalize = async () => {
         if (WebSerialPort.isNode) {
             throw(new Error("js-serial-web exected in node environment"))
