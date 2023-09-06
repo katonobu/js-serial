@@ -1,4 +1,4 @@
-import { NodeMockSerialPort } from './NodeMockSerialPort'
+import { NodeMockSerialPort } from '../NodeMockSerialPort'
 import { JsSerialBase } from '../BaseSerialPort';
 
 describe("AbstractSerialPort", () => {
