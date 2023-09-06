@@ -18,16 +18,13 @@ import {Terminal} from 'xterm';
 import {FitAddon} from 'xterm-addon-fit';
 import {WebLinksAddon} from 'xterm-addon-web-links';
 import 'xterm/css/xterm.css';
-import {
-  serial as polyfill, SerialPort as SerialPortPolyfill,
-} from 'web-serial-polyfill';
 
 /**
  * Elements of the port selection dropdown extend HTMLOptionElement so that
  * they can reference the SerialPort they represent.
  */
 declare class PortOption extends HTMLOptionElement {
-  port: SerialPort | SerialPortPolyfill;
+  port: SerialPort;
 }
 
 let portSelector: HTMLSelectElement;
@@ -43,11 +40,9 @@ let flushOnEnterCheckbox: HTMLInputElement;
 let autoconnectCheckbox: HTMLInputElement;
 
 let portCounter = 1;
-let port: SerialPort | SerialPortPolyfill | undefined;
+let port: SerialPort | undefined;
 let reader: ReadableStreamDefaultReader | ReadableStreamBYOBReader | undefined;
 
-const urlParams = new URLSearchParams(window.location.search);
-const usePolyfill = urlParams.has('polyfill');
 const bufferSize = 8 * 1024; // 8kB
 
 const term = new Terminal({
@@ -94,7 +89,7 @@ term.onData((data) => {
  * @param {SerialPort} port the port to find
  * @return {PortOption}
  */
-function findPortOption(port: SerialPort | SerialPortPolyfill):
+function findPortOption(port: SerialPort):
     PortOption | null {
   for (let i = 0; i < portSelector.options.length; ++i) {
     const option = portSelector.options[i];
@@ -116,7 +111,7 @@ function findPortOption(port: SerialPort | SerialPortPolyfill):
  * @param {SerialPort} port the port to add
  * @return {PortOption}
  */
-function addNewPort(port: SerialPort | SerialPortPolyfill): PortOption {
+function addNewPort(port: SerialPort): PortOption {
   const portOption = document.createElement('option') as PortOption;
   portOption.textContent = `Port ${portCounter++}`;
   portOption.port = port;
@@ -131,7 +126,7 @@ function addNewPort(port: SerialPort | SerialPortPolyfill): PortOption {
  * @param {SerialPort} port the port to add
  * @return {PortOption}
  */
-function maybeAddNewPort(port: SerialPort | SerialPortPolyfill): PortOption {
+function maybeAddNewPort(port: SerialPort): PortOption {
   const portOption = findPortOption(port);
   if (portOption) {
     return portOption;
@@ -188,7 +183,7 @@ function clearTerminalContents(): void {
 async function getSelectedPort(): Promise<void> {
   if (portSelector.value == 'prompt') {
     try {
-      const serial = usePolyfill ? polyfill : navigator.serial;
+      const serial = navigator.serial;
       port = await serial.requestPort({});
     } catch (e) {
       return;
@@ -425,35 +420,23 @@ document.addEventListener('DOMContentLoaded', async () => {
   convertEolCheckbox.addEventListener('change', convertEolCheckboxHandler);
   convertEolCheckboxHandler();
 
-  const polyfillSwitcher =
-      document.getElementById('polyfill_switcher') as HTMLAnchorElement;
-  if (usePolyfill) {
-    polyfillSwitcher.href = './';
-    polyfillSwitcher.textContent = 'Switch to native API';
-  } else {
-    polyfillSwitcher.href = './?polyfill';
-    polyfillSwitcher.textContent = 'Switch to API polyfill';
-  }
-
-  const serial = usePolyfill ? polyfill : navigator.serial;
-  const ports: (SerialPort | SerialPortPolyfill)[] = await serial.getPorts();
+  const serial = navigator.serial;
+  const ports: (SerialPort)[] = await serial.getPorts();
   ports.forEach((port) => addNewPort(port));
 
   // These events are not supported by the polyfill.
   // https://github.com/google/web-serial-polyfill/issues/20
-  if (!usePolyfill) {
-    navigator.serial.addEventListener('connect', (event) => {
-      const portOption = addNewPort(event.target as SerialPort);
-      if (autoconnectCheckbox.checked) {
-        portOption.selected = true;
-        connectToPort();
-      }
-    });
-    navigator.serial.addEventListener('disconnect', (event) => {
-      const portOption = findPortOption(event.target as SerialPort);
-      if (portOption) {
-        portOption.remove();
-      }
-    });
-  }
+  navigator.serial.addEventListener('connect', (event) => {
+    const portOption = addNewPort(event.target as SerialPort);
+    if (autoconnectCheckbox.checked) {
+      portOption.selected = true;
+      connectToPort();
+    }
+  });
+  navigator.serial.addEventListener('disconnect', (event) => {
+    const portOption = findPortOption(event.target as SerialPort);
+    if (portOption) {
+      portOption.remove();
+    }
+  });
 });

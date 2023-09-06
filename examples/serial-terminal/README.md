@@ -34,3 +34,12 @@ To start a local development server run,
 ```sh
 npm run dev
 ```
+
+# change history by katonobu
+## 2023/09/07
+- `serial-terminal\.github\workflows\build_and_deploy.yml`
+    - delete 
+- `serial-terminal\README.md`    
+    - add this section 
+- `src\index.ts`,`index.html`
+    - Delete polyfill functions.
