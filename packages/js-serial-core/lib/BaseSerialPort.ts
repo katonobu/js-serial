@@ -87,11 +87,11 @@ export class JsSerialBase{
         this._updateCount = 0
     }
 
-    async init(opt:{pollingIntervalMs?:number}):Promise<void> {
+    async init(opt:{pollingIntervalMs?:number} = {}):Promise<void> {
         await this._serialPort.init({portManager:this, pollingIntervalMs:opt?.pollingIntervalMs})
         await this.updateRequest()
     }
-    async promptGrantAccess(option:any/*createOption*/):Promise<portInfoType> {
+    async promptGrantAccess(option:any/*createOption*/ = {}):Promise<portInfoType> {
         try {
             const newPort = await this._serialPort.promptGrantAccess(option)
             await this.updateRequest()
@@ -127,7 +127,7 @@ export class JsSerialBase{
             }
         }
     }
-    async receivePort(id:portIdType, byteLength: number, timeoutMs: number, option:object): Promise<any> {
+    async receivePort(id:portIdType, byteLength: number, timeoutMs: number, option:object={}): Promise<any> {
         try {
             const receivePromise = this._serialPort.receivePort(
                 this._idToObj[id].port,
@@ -150,7 +150,7 @@ export class JsSerialBase{
             }
         }
     }
-    async sendPort(id:portIdType, msg: Uint8Array, option:object): Promise<string> {
+    async sendPort(id:portIdType, msg: Uint8Array, option:object = {}): Promise<string> {
         try {
             return await this._serialPort.sendPort(this._idToObj[id].port, msg, option)
         }catch (e){
@@ -314,7 +314,7 @@ export class JsSerialBase{
         }
     }
 
-    subscribeRxLineNum(id:number, cb:()=>void):()=>void {
+    subscribeRxLineNum(id:portIdType, cb:()=>void):()=>void {
         if (id < this._rxLineNumStore.length) {
             return this._rxLineNumStore[id].subscribe(cb)
         } else {
@@ -322,7 +322,7 @@ export class JsSerialBase{
         }
     }
 
-    updateRx(id:number, updateData:Uint8Array):boolean {
+    updateRx(id:portIdType, updateData:Uint8Array):boolean {
         if (id < this._rxLineBuffers.length) {
             const updatedLines = this._rxDataHandler.handler(updateData)
             if (0 < updatedLines.length) {
@@ -339,14 +339,14 @@ export class JsSerialBase{
             return false
         }
     }
-    getRxLineNum(id:number):rxLineNumType {
+    getRxLineNum(id:portIdType):rxLineNumType {
         if (id < this._rxLineNumStore.length){
             return this._rxLineNumStore[id].get()
         } else {
             return { totalLines:0, updatedLines:0}
         }
     }    
-    getRxLines(id:number, start:number, end:number):rxLinesType {
+    getRxLines(id:portIdType, start:number, end:number):rxLinesType {
         if (id < this._rxLineBuffers.length) {
             const buff = this._rxLineBuffers[id]
             const len = buff.length
