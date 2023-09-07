@@ -43,3 +43,32 @@ npm run dev
     - add this section 
 - `src\index.ts`,`index.html`
     - Delete polyfill functions.
+## 2023/09/08
+- `src\index.ts`
+    - Chagen to use JsSerialWeb
+- `vite.config.ts`
+    - Don't check ESLint(to PASS lib), this may revert in future.
+
+----
+function findPortOption(port: SerialPort):
+指定されたSerialPortのPortOptionオブジェクトを返す
+
+function addNewPort(port: SerialPort): PortOption
+
+
+
+変数関係
+portSelector: HTMLSelectElement
++- options:HTMLOptionsCollection 
+   +- textContent = `Port ${portCounter++}`;
+   +- port:SerialPort
+
+HTMLSelectElement.selectedOptions 読取専用
+HTMLCollection で、選択されているすべての <option> 要素を反映します。
+→なので、[0]   
+
+function findPortOption(port: SerialPort):
++- function maybeAddNewPort(port: SerialPort): PortOption
+|  +- async function getSelectedPort(): Promise<void>
+|  |  +- async function connectToPort(): Promise<void>
++- navigator.serial.addEventListener('disconnect'...)
