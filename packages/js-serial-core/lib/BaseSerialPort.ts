@@ -136,7 +136,7 @@ export class JsSerialBase{
                 {...option, updateRx:(updateData:Uint8Array):boolean => this.updateRx(id, updateData)}
             )
             if (byteLength === 0 && timeoutMs === 0) {
-                return 'OK'
+                return receivePromise
             } else {
                 return await receivePromise
             }
