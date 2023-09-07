@@ -329,10 +329,11 @@ export class JsSerialBase{
                 const ts:number = (new Date()).getTime()
                 const buff = this._rxLineBuffers[id]
                 const prevLen = buff.length
-                const addLines = updatedLines.map((data, idx)=>({data:data.replace(/\r\n|\r|\n/,''), ts, id:idx+prevLen}))
-    //            console.log(id, ts, buff.length, updateData.length)
+                const addLines = updatedLines.map((data, idx)=>({data, ts, id:idx+prevLen}))
+//                console.log(id, ts, buff.length, updateData.length)
+//                console.log(JSON.stringify(addLines))
                 this._rxLineBuffers[id] = buff.concat(addLines)
-                this._rxLineNumStore[id].update({totalLines:this._rxLineBuffers[id].length, updatedLines:updateData.length})
+                this._rxLineNumStore[id].update({totalLines:this._rxLineBuffers[id].length, updatedLines:updatedLines.length})
             }
             return true
         } else {
