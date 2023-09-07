@@ -120,6 +120,7 @@ export class WebSerialPort extends AbstractSerialPort{
     receivePort = async (dp:object, byteLength:number, timeoutMs:number, option: receivePortOptionType) => {
         const port = dp as SerialPort
         if (byteLength === 0 && timeoutMs === 0) {
+            let errorCount = 0
             // read infinit until close
             const { updateRx, bufferSize = 8 * 1024 /* 8KB */ } = option
             // if try to close, this._closeReq become true
@@ -162,6 +163,10 @@ export class WebSerialPort extends AbstractSerialPort{
                     }
                 } catch (e) {
                     console.error(e);
+                    if (10 < errorCount++) {
+                        console.error("Too many error")
+                        break
+                    }
                 } finally {
                     if (this._reader) {
                         this._reader.releaseLock();
