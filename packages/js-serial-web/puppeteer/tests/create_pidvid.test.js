@@ -42,37 +42,15 @@ describe("PidVidFilter", () => {
     await page.reload();
   });
 
-  it('NoFilter', async () => {
-    const nameValue = pidVidFilterParams[0]
-    await page.evaluate((nameValue) => {
-      document.title = nameValue.name
-    }, nameValue);
-    const actual = await setOptionClickCreate(page, nameValue.value)
-    expect(actual.rsp.id).toBe(-1)
-    expect(actual.rsp.pid).toBe(-1)
-    expect(actual.rsp.vid).toBe(-1)
+  it('PidVidFilter', async () => {
+    for await (nameValue of pidVidFilterParams) {
+      await page.evaluate((nameValue) => {
+        document.title = nameValue.name
+      }, nameValue);
+      const actual = await setOptionClickCreate(page, nameValue.value)
+      expect(actual.rsp.id).toBe(-1)
+      expect(actual.rsp.pid).toBe(-1)
+      expect(actual.rsp.vid).toBe(-1)
+    }
   }, 3600*1000);
-
-  it('FTDI', async () => {
-    const nameValue = pidVidFilterParams[1]
-    await page.evaluate((nameValue) => {
-      document.title = nameValue.name
-    }, nameValue);
-    const actual = await setOptionClickCreate(page, nameValue.value)
-    expect(actual.rsp.id).toBe(-1)
-    expect(actual.rsp.pid).toBe(-1)
-    expect(actual.rsp.vid).toBe(-1)
-  }, 3600*1000);
-
-  it('ST Micro', async () => {
-    const nameValue = pidVidFilterParams[2]
-    await page.evaluate((nameValue) => {
-      document.title = nameValue.name
-    }, nameValue);
-    const actual = await setOptionClickCreate(page, nameValue.value)
-    expect(actual.rsp.id).toBe(-1)
-    expect(actual.rsp.pid).toBe(-1)
-    expect(actual.rsp.vid).toBe(-1)
-  }, 3600*1000);
-
 });
