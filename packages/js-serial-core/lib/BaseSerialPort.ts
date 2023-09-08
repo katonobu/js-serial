@@ -104,13 +104,9 @@ export class JsSerialBase{
     }
     async deletePort(id:portIdType):Promise<portInfoType> {
         try {
-            if (id < this._idToObj.length) {
-                const ret = await this._serialPort.deletePort(this._idToObj[id])
-                this.updateRequest()
-                return ret
-            } else {
-                throw new Error(`Invalid Id:${id}`)
-            }
+            const ret = await this._serialPort.deletePort(this._idToObj[id])
+            await this.updateRequest()
+            return ret
         } catch (e) {
             console.log(e)
             return {id:-1, pid:-1, vid:-1}
@@ -118,44 +114,47 @@ export class JsSerialBase{
     }
     async openPort(id:portIdType, option:openOptionType = {baudRate:115200}):Promise<string> {
         try {
-            await this._serialPort.openPort(this._idToObj[id].port, option)
+            const ret = await this._serialPort.openPort(this._idToObj[id].port, option)
             this._openCloseSttStore[id].update(true)
-            return 'OK'
+            return ret
         }catch (e){
             if (e instanceof Error){
-                return e.toString()
-            } else if (typeof e === 'string'){
-                return e
+                return 'ERROR :'+e.toString()
             } else {
                 throw e
             }
         }
     }
     
-    async startReceivePort(id:portIdType, option:{rxDataHandler?:AbstractDataHandler}={}): Promise<any> {
+    async startReceivePort(id:portIdType, option:{rxDataHandler?:AbstractDataHandler}={}): Promise<string> {
         try {
             if (option.rxDataHandler){
                 this._rxDataHandler = option.rxDataHandler
             }
-            const receivePromise = this._serialPort.startReceivePort(
+            return this._serialPort.startReceivePort(
                 this._idToObj[id].port,
                 {...option, 
                     updateRx:(updateData:Uint8Array):boolean => this.updateRx(id, updateData)
                 }
             )
-            return receivePromise
         }catch (e){
             if (e instanceof Error){
-                return e.toString()
-            } else if (typeof e === 'string'){
-                return e
+                return 'ERROR :'+e.toString()
             } else {
                 throw e
             }
         }
     }
-    async stopReceivePort(id:portIdType): Promise<void> {
-        return this._serialPort.stopReceivePort(this._idToObj[id].port)
+    async stopReceivePort(id:portIdType): Promise<string> {
+        try {
+            return this._serialPort.stopReceivePort(this._idToObj[id].port)
+        }catch (e){
+            if (e instanceof Error){
+                return 'ERROR :'+e.toString()
+            } else {
+                throw e
+            }
+        }
     }
 
     async sendPort(id:portIdType, msg: Uint8Array, option:object = {}): Promise<string> {
@@ -163,9 +162,7 @@ export class JsSerialBase{
             return await this._serialPort.sendPort(this._idToObj[id].port, msg, option)
         }catch (e){
             if (e instanceof Error){
-                return e.toString()
-            } else if (typeof e === 'string'){
-                return e
+                return 'ERROR :'+e.toString()
             } else {
                 throw e
             }
@@ -173,14 +170,12 @@ export class JsSerialBase{
     }
     async closePort(id:portIdType):Promise<string> {
         try {
-            await this._serialPort.closePort(this._idToObj[id].port)
+            const ret = await this._serialPort.closePort(this._idToObj[id].port)
             this._openCloseSttStore[id].update(false)
-            return 'OK'
+            return ret
         }catch (e){
             if (e instanceof Error){
-                return e.toString()
-            } else if (typeof e === 'string'){
-                return e
+                return 'ERROR :'+e.toString()
             } else {
                 throw e
             }

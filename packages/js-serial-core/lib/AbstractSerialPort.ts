@@ -35,8 +35,7 @@ export type startReceiveReturnType =
     "UsbDetached" |
     "InvalidId" |
     "NotOpen" |
-    "AlreadyStartReceive" |
-    "TooManyRecoverbleError"
+    "AlreadyStartReceive"
 
 export class MicroStore<T> {
     private obj: T;
@@ -70,11 +69,11 @@ type GetDeviceKeyPortInfosFunction = () => Promise<deviceKeyPortInfoType[]>
 type PromptGrantAccessFunction = (option:object/*createOption*/)=>Promise<devicePortType>
 type CreatePortFunction = (path:string)=>devicePortType
 type DeletePortFunction = (devicePort:deviceKeyPortInfoAvailableType)=>Promise<portInfoType>
-type OpenPortFunction = (devicePort:devicePortType, option:openOptionType)=>Promise<void>
+type OpenPortFunction = (devicePort:devicePortType, option:openOptionType)=>Promise<string>
 type StartReceivePortFunction = (deviePort:devicePortType, option:receivePortOptionType)=>Promise<startReceiveReturnType>
-type StopReceivePortFunction = (deviePort:devicePortType)=>Promise<void>
+type StopReceivePortFunction = (deviePort:devicePortType)=>Promise<string>
 type SendPortFunction = (deviePort:devicePortType, msg: Uint8Array, option:object)=>Promise<string>
-type ClosePortFunction = (devicePort:devicePortType)=>Promise<void>
+type ClosePortFunction = (devicePort:devicePortType)=>Promise<string>
 type FinalizeFunction = (opt:object) => Promise<void>
 
 export abstract class AbstractSerialPort{

@@ -52,26 +52,29 @@ export class NodeSerialPort extends AbstractSerialPort{
     openPort = (
         // @ts-ignore
         dp, opt
-    )=>Promise.resolve()
+    )=> {
+        throw (new Error("not implemented yet"))
+    }
     startReceivePort = (
         deviePort:devicePortType, option:receivePortOptionType
     ):Promise<startReceiveReturnType> => {
-        return Promise.resolve("Close")
+        throw (new Error("not implemented yet"))
     }
     stopReceivePort = ()=>{
-        return Promise.resolve()
+        throw (new Error("not implemented yet"))
     }
     sendPort = (
         // @ts-ignore
         deviePort, msg, option
     ) => {
-        return Promise.resolve("")
+        throw (new Error("not implemented yet"))
     }
-
     closePort = (
         // @ts-ignore
         dp
-    )=>Promise.resolve()
+    )=>{
+        throw (new Error("not implemented yet"))
+    }
     finalize = async (opt:object) => {
         if (NodeSerialPort.intervalId) {
             clearInterval(NodeSerialPort.intervalId)

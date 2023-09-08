@@ -57,7 +57,7 @@ describe("OpenClose", () => {
         expect(await page.$eval('#open_stt', preElement => preElement.innerText)).toBe('OPEN')
 
         // open already opened port.
-        expect((await clickAndWait(page, '#open',"open", 0)).rsp.result.startsWith("Error")).toBe(true)
+        expect((await clickAndWait(page, '#open',"open", 0)).rsp.result.startsWith("ERROR")).toBe(true)
         expect(await page.$eval('#open_stt', preElement => preElement.innerText)).toBe('OPEN')
 
         expect((await clickAndWait(page, '#close',"close", 0)).rsp.result).toBe('OK')
@@ -74,7 +74,7 @@ describe("OpenClose", () => {
         expect(await page.$eval('#open_stt', preElement => preElement.innerText)).toBe('CLOSE')
 
         // close already closeded port.
-        expect((await clickAndWait(page, '#close',"close", 0)).rsp.result.startsWith("Error")).toBe(true)
+        expect((await clickAndWait(page, '#close',"close", 0)).rsp.result.startsWith("ERROR")).toBe(true)
         expect(await page.$eval('#open_stt', preElement => preElement.innerText)).toBe('CLOSE')
     }, 5*1000);
 

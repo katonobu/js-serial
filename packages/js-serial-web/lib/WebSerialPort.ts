@@ -23,57 +23,36 @@ class Port {
         this._closeReq = false
         this._reader = undefined
     }
-    deletePort = async ():Promise<void> => {    
+    deletePort = async ():Promise<string> => {    
         const port = this._port
-        let errStr: string = '';
-        if (port) {
-            try {
-                await port.forget();
-            } catch (e) {
-                if (e instanceof Error) {
-                    errStr = e.message;
-                } else {
-                    errStr = 'Error at forget';
-                }
-            }
+        if (!port) {
+            throw new Error("Invalid Id is specified to deletePort()")
         } else {
-            errStr = 'specified port has been invalid';
+            await port.forget();
         }
-        if (errStr) {
-            throw(new Error(errStr))
-        }
+        return "OK"
     }
-    openPort = async (opt:SerialOptions):Promise<void>=>{
+    openPort = async (opt:SerialOptions):Promise<string>=>{
         const port = this._port
-        let errStr: string = '';
-        if (port) {
-            try {
-                const openOption = opt as SerialOptions
-                await port.open(openOption)
-            } catch (e) {
-                if (e instanceof Error) {
-                    errStr = e.message;
-                } else {
-                    errStr = 'Open Error';
-                }
-            }
+        if (!port) {
+            throw new Error("Invalid Id is specified to openPort()")
         } else {
-            errStr = 'specified port has been invalid';
+            const openOption = opt as SerialOptions
+            await port.open(openOption)
         }
-        if (errStr) {
-            throw(new Error(errStr))
-        }
+        return "OK"
     }
     startReceivePort = async (option: receivePortOptionType):Promise<startReceiveReturnType> => {
-        const port = this._port
         let result:startReceiveReturnType | undefined = undefined
+        const port = this._port
         if (!port) {
-            result = "InvalidId"
+            throw new Error("Invalid Id is specified to startReceivePort()")
         } else if (!port.readable) {
-            result = "NotOpen"
+            throw new Error("Port is not opened but try to startReceivePort()")
         } else if (port.readable.locked) {
-            result = "AlreadyStartReceive"
+            throw new Error("Already receive started, but try to startReceivePort()")
         } else {
+            let tooManyError = false
             let errorCount = 0
             // read infinit until close
             const { updateRx, bufferSize = 8 * 1024 /* 8KB */ } = option
@@ -115,10 +94,9 @@ class Port {
                         }
                     }
                 } catch (e) {
-                    console.error(e);
+                    console.warn(e)
                     if (10 < errorCount++) {
-                        console.error("Too many error")
-                        result = "TooManyRecoverbleError"
+                        tooManyError = true
                         break
                     }
                 } finally {
@@ -141,21 +119,32 @@ class Port {
                 try {
                     await this.closePort()
                 } catch (e) {
-                    console.error(e);
+                    throw e
                 }
-                result = result?result:"UsbDetached"
+                if (tooManyError) {
+                    throw new Error("Too many errors in receiver loop")
+                }
+                result = "UsbDetached"
             }
         }
         return result
     }
-    stopReceivePort = async ():Promise<void> => {
-        if (this._port) {
+    stopReceivePort = async ():Promise<string> => {
+        const port = this._port
+        if (!port) {
+            throw new Error("Invalid Id is specified to stopReceivePort()")
+        } else if (!port.readable) {
+            throw new Error("Port is not opened but try to stopReceivePort()")
+        } else if (!port.readable.locked) {
+            throw new Error("Receive may not started, but try to stopReceivePort()")
+        } else if (this._reader === undefined) {
+            throw new Error("Receive may not started, but try to stopReceivePort()")
+        } else {
             this._stopReadReq = true
             this._closeReq = false
-            if (this._reader) {
-                await this._reader.cancel()
-            }
+            await this._reader.cancel()
         }
+        return "OK"
     }
     sendPort = async (
         msg:Uint8Array,
@@ -163,46 +152,32 @@ class Port {
         option:any
     ):Promise<string> => {
         const port = this._port
-        let errStr: string = '';
-        if (port) {
-            if (port.writable) {
-                try {
-                    const writer = port.writable.getWriter();
-                    await writer.write(msg);
-                    writer.releaseLock();
-                } catch (e) {
-                    errStr = 'Error while writing message.';
-                }
-            } else {
-                errStr = 'port is not writable';
-            }
+        if (!port) {
+            throw new Error("Invalid Id is specified to sendPort()")
+        } else if (!port.writable) {
+            throw new Error("Port is not opened but try to sendPort()")
+        } else if (port.writable.locked) {
+            throw new Error("Writeter is locked, but try to sendPort()")
+        } else {
+                const writer = port.writable.getWriter();
+                await writer.write(msg);
+                writer.releaseLock();
         }
-        return errStr;
+        return "OK"
     }    
-    closePort = async ():Promise<void>=>{
+    closePort = async ():Promise<string>=>{
         const port = this._port
-        let errStr: string = '';
-        if (port) {
+        if (!port) {
+            throw new Error("Invalid Id is specified to closePort()")
+        } else {
             if (this._reader) {
                 this._stopReadReq = true
                 this._closeReq = true
                 await this._reader.cancel()
             }
-            try {
-                await port.close()
-            } catch (e) {
-                if (e instanceof Error) {
-                    errStr = e.message;
-                } else {
-                    errStr = 'Close Error';
-                }
-            }
-        } else {
-            errStr = 'specified port has been invalid';
+            await port.close()
         }
-        if (errStr) {
-            throw(new Error(errStr))
-        }
+        return "OK"
     }
 }
 
@@ -271,7 +246,7 @@ export class WebSerialPort extends AbstractSerialPort{
             return dp.info
         }
     }
-    openPort = async (dp:devicePortType, opt:openOptionType):Promise<void>=>{
+    openPort = async (dp:devicePortType, opt:openOptionType):Promise<string>=>{
         if (WebSerialPort.isNode) {
             throw(new Error("js-serial-web exected in node environment"))
         } else {
@@ -280,12 +255,20 @@ export class WebSerialPort extends AbstractSerialPort{
         }
     }
     startReceivePort = async (dp:devicePortType, option: receivePortOptionType):Promise<startReceiveReturnType> => {
-        const port = dp as Port
-        return port.startReceivePort(option)
+        if (WebSerialPort.isNode) {
+            throw(new Error("js-serial-web exected in node environment"))
+        } else {
+            const port = dp as Port
+            return port.startReceivePort(option)
+        }
     }
-    stopReceivePort = async (dp:devicePortType):Promise<void> => {
-        const port = dp as Port
-        return port.stopReceivePort()
+    stopReceivePort = async (dp:devicePortType):Promise<string> => {
+        if (WebSerialPort.isNode) {
+            throw(new Error("js-serial-web exected in node environment"))
+        } else {
+            const port = dp as Port
+            return port.stopReceivePort()
+        }
     }
     sendPort = async (
         dp:devicePortType,
@@ -293,10 +276,14 @@ export class WebSerialPort extends AbstractSerialPort{
         // @ts-ignore
         option:any
     ):Promise<string> => {
-        const port = dp as Port
-        return port.sendPort(msg, option)
+        if (WebSerialPort.isNode) {
+            throw(new Error("js-serial-web exected in node environment"))
+        } else {
+            const port = dp as Port
+            return port.sendPort(msg, option)
+        }
     }
-    closePort = async (dp:object):Promise<void>=>{
+    closePort = async (dp:object):Promise<string>=>{
         if (WebSerialPort.isNode) {
             throw(new Error("js-serial-web exected in node environment"))
         } else {
