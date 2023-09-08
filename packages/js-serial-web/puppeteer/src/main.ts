@@ -167,27 +167,18 @@ deleteEle.onclick = ()=>{
   })
 }
 
-const receiveEle = document.querySelector<HTMLButtonElement>('#receive')!
-const rxOptionEle = document.querySelector<HTMLButtonElement>('#rx_option')!
-receiveEle.onclick = ()=>{
+const startReceiveEle = document.querySelector<HTMLButtonElement>('#start_receive')!
+startReceiveEle.onclick = ()=>{
   const receivePortIdStr = currentPortStrId.innerText
-  const rxOption = JSON.parse(rxOptionEle.innerText)
-  const length = rxOption.byteLength
-  const timeout = rxOption.timeoutMs
-  if (length === 0 && timeout === 0) {
-    jsw.receivePort(parseInt(receivePortIdStr, 10), length, timeout,{})
-    logTransaction("receive", {idStr:receivePortIdStr, length, timeout},{})
-  } else {
-    /* ToDo
-    receievePort(receivePortIdStr, length, timeout)
-    .then((result)=>{
-      logTransaction("receive",{idStr:receivePortIdStr, length, timeout},{result})
-    })
-    .catch((e)=>{
-      logTransaction("receive", {idStr:receivePortIdStr}, {msg:e.toString()}, true)
-    })
-    */
-  }
+  jsw.startReceivePort(parseInt(receivePortIdStr, 10))
+  logTransaction("start_receive", {idStr:receivePortIdStr},{})
+}
+
+const stopReceiveEle = document.querySelector<HTMLButtonElement>('#stop_receive')!
+stopReceiveEle.onclick = ()=>{
+  const receivePortIdStr = currentPortStrId.innerText
+  jsw.stopReceivePort(parseInt(receivePortIdStr, 10))
+  logTransaction("stop_receive", {idStr:receivePortIdStr},{})
 }
 
 const receiveLinesEle = document.querySelector<HTMLButtonElement>('#receive_lines')!

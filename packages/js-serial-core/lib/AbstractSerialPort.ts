@@ -5,9 +5,9 @@ export type portInfoType = {
     vid:number,
     portName?:string
 }
-type devicePortType = object /* SerialPort */
+export type devicePortType = object /* SerialPort */
 export type compareKeyType = string | devicePortType
-type deviceKeyPortInfoType = {
+export type deviceKeyPortInfoType = {
     key:compareKeyType,
     info:portInfoType,
     port?:devicePortType
@@ -20,10 +20,23 @@ export type deviceKeyPortInfoAvailableType = {
     available:boolean;
 }
 
+export type openOptionType = {
+    baudRate:number
+}
+
 export type receivePortOptionType = {
     updateRx:(arg0: Uint8Array)=>boolean;
     bufferSize?: number
 }
+
+export type startReceiveReturnType = 
+    "Close" |
+    "Stop" |
+    "UsbDetached" |
+    "InvalidId" |
+    "NotOpen" |
+    "AlreadyStartReceive" |
+    "TooManyRecoverbleError"
 
 export class MicroStore<T> {
     private obj: T;
@@ -57,9 +70,10 @@ type GetDeviceKeyPortInfosFunction = () => Promise<deviceKeyPortInfoType[]>
 type PromptGrantAccessFunction = (option:object/*createOption*/)=>Promise<devicePortType>
 type CreatePortFunction = (path:string)=>devicePortType
 type DeletePortFunction = (devicePort:deviceKeyPortInfoAvailableType)=>Promise<portInfoType>
-type OpenPortFunction = (devicePort:devicePortType, option:any/*openOption*/)=>Promise<void>
-type ReceivePortFunction = (deviePort:devicePortType, byteLength: number, timeoutMs: number, option:receivePortOptionType)=>Promise<any>
-type SendPortFunction = (deviePort:devicePortType, msg: Uint8Array, option:object)=>Promise<any>
+type OpenPortFunction = (devicePort:devicePortType, option:openOptionType)=>Promise<void>
+type StartReceivePortFunction = (deviePort:devicePortType, option:receivePortOptionType)=>Promise<startReceiveReturnType>
+type StopReceivePortFunction = (deviePort:devicePortType)=>Promise<void>
+type SendPortFunction = (deviePort:devicePortType, msg: Uint8Array, option:object)=>Promise<string>
 type ClosePortFunction = (devicePort:devicePortType)=>Promise<void>
 type FinalizeFunction = (opt:object) => Promise<void>
 
@@ -70,7 +84,8 @@ export abstract class AbstractSerialPort{
     abstract createPort:CreatePortFunction
     abstract deletePort:DeletePortFunction
     abstract openPort:OpenPortFunction
-    abstract receivePort:ReceivePortFunction
+    abstract startReceivePort:StartReceivePortFunction
+    abstract stopReceivePort:StopReceivePortFunction
     abstract sendPort:SendPortFunction
     abstract closePort:ClosePortFunction
     abstract finalize:FinalizeFunction

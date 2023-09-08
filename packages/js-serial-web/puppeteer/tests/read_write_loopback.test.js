@@ -90,8 +90,7 @@ describe("ReadWriteLoopback", () => {
         expect(await page.$eval('#open_stt', preElement => preElement.innerText)).toBe('OPEN')
 
         // 受信処理を開始させる
-        await page.$eval('#rx_option', (preElement, value)=>preElement.innerText = value, JSON.stringify({byteLength:0, timeoutMs:0}))
-        await clickAndWait(page, '#receive', 'receive', 100)
+        await clickAndWait(page, '#start_receive', 'start_receive', 100)
         const sendData = (new Date()).toLocaleString()
         // 送信文字列を設定する。
         await page.$eval('#last_tx', (preElement, value)=>preElement.innerText = value, sendData+'\n')
@@ -110,10 +109,10 @@ describe("ReadWriteLoopback", () => {
         expect(rxStr).toBe(sendData)
 
         // 後始末
+        await clickAndWait(page, '#stop_receive', 'stop_receive', 100)
         expect((await clickAndWait(page, '#close',"close", 0)).rsp.result).toBe('OK')
         expect(await page.$eval('#open_stt', preElement => preElement.innerText)).toBe('CLOSE')
     }, 10*1000);
-
     it('read/write multi line', async () => {
         // 前準備
         let actual = await getPortsNum(page)
@@ -127,11 +126,10 @@ describe("ReadWriteLoopback", () => {
         expect(await page.$eval('#open_stt', preElement => preElement.innerText)).toBe('OPEN')
 
         // 受信処理を開始させる
-        await page.$eval('#rx_option', (preElement, value)=>preElement.innerText = value, JSON.stringify({byteLength:0, timeoutMs:0}))
-        await clickAndWait(page, '#receive', 'receive', 100)
-        const sendData = multiLineTxStrs.reduce((prev, current)=>prev + "\n" + current)
+        await clickAndWait(page, '#start_receive', 'start_receive', 100)
+        const sendData = multiLineTxStrs.join("\n")
         // 送信文字列を設定する。
-        await page.$eval('#last_tx', (preElement, value)=>preElement.innerText = value, sendData+'\r\n')
+        await page.$eval('#last_tx', (preElement, value)=>preElement.innerText = value, sendData+'\n')
         // 受信文字列をクリアしておく
         await page.$eval('#last_rx', (preElement, value)=>preElement.innerText = value, "")
         // 受信文字表示位置までスクロールさせる
@@ -140,6 +138,7 @@ describe("ReadWriteLoopback", () => {
         // 送信前にたまっているデータ位置を確認しておく
         const prevReceiveLinesData = await clickAndWait(page, '#receive_lines',"receive_lines", 100)
         const prevDataStartIndex = prevReceiveLinesData.rsp.data.length
+        console.log("prevDataStartIndex", prevDataStartIndex)
 
         // 文字列送信
         await clickAndWait(page, '#send',"send", 100)
@@ -148,7 +147,7 @@ describe("ReadWriteLoopback", () => {
         await new Promise((resolve)=>setTimeout(resolve, 100))
         // 今回受信したデータ列を抽出
         const newReceiveLinesData = await clickAndWait(page, '#receive_lines',"receive_lines", 100)
-//        console.log(JSON.stringify(newReceiveLinesData, null, 2))
+        console.log(JSON.stringify(newReceiveLinesData, null, 2))
         const newDataLength = newReceiveLinesData.rsp.data.length
         const actDatas = []
         for (let idx = prevDataStartIndex; idx < newDataLength; idx++) {
@@ -156,6 +155,7 @@ describe("ReadWriteLoopback", () => {
         }
 //        console.log(JSON.stringify(actDatas, null, 2))
 
+        expect(actDatas.length).toBe(multiLineTxStrs.length)
         // 送信期待文字列と比較
         actDatas.forEach((act,index)=>{expect(act.data).toBe(multiLineTxStrs[index])})
         // タイムスタンプが単調増加(同値OK)していること
@@ -171,6 +171,7 @@ describe("ReadWriteLoopback", () => {
         }, actDatas[0].id-1)
 
         // 後始末
+        await clickAndWait(page, '#stop_receive', 'stop_receive', 100)
         expect((await clickAndWait(page, '#close',"close", 0)).rsp.result).toBe('OK')
         expect(await page.$eval('#open_stt', preElement => preElement.innerText)).toBe('CLOSE')
     }, 100*1000);

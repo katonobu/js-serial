@@ -2,6 +2,7 @@ import {
     portIdType, 
     portInfoType, 
     compareKeyType, 
+    openOptionType,
     deviceKeyPortInfoAvailableType,    
     MicroStore, 
     AbstractSerialPort,
@@ -74,7 +75,6 @@ export class JsSerialBase{
 
     constructor(
         serialPort:AbstractSerialPort,
-        rxDataHandler:AbstractDataHandler = new DelimiterDataHandler()
     ){
         this._idToObj = []
         this._currentKeysCache  = []
@@ -83,7 +83,7 @@ export class JsSerialBase{
         this._rxLineBuffers = []
         this._rxLineNumStore = []
         this._serialPort = serialPort
-        this._rxDataHandler = rxDataHandler
+        this._rxDataHandler = new DelimiterDataHandler()
         this._updateCount = 0
     }
 
@@ -104,15 +104,19 @@ export class JsSerialBase{
     }
     async deletePort(id:portIdType):Promise<portInfoType> {
         try {
-            const ret = await this._serialPort.deletePort(this._idToObj[id])
-            this.updateRequest()
-            return ret
+            if (id < this._idToObj.length) {
+                const ret = await this._serialPort.deletePort(this._idToObj[id])
+                this.updateRequest()
+                return ret
+            } else {
+                throw new Error(`Invalid Id:${id}`)
+            }
         } catch (e) {
             console.log(e)
             return {id:-1, pid:-1, vid:-1}
         }
     }
-    async openPort(id:portIdType, option:any/*openOption*/):Promise<string> {
+    async openPort(id:portIdType, option:openOptionType = {baudRate:115200}):Promise<string> {
         try {
             await this._serialPort.openPort(this._idToObj[id].port, option)
             this._openCloseSttStore[id].update(true)
@@ -127,19 +131,19 @@ export class JsSerialBase{
             }
         }
     }
-    async receivePort(id:portIdType, byteLength: number, timeoutMs: number, option:object={}): Promise<any> {
+    
+    async startReceivePort(id:portIdType, option:{rxDataHandler?:AbstractDataHandler}={}): Promise<any> {
         try {
-            const receivePromise = this._serialPort.receivePort(
-                this._idToObj[id].port,
-                byteLength,
-                timeoutMs,
-                {...option, updateRx:(updateData:Uint8Array):boolean => this.updateRx(id, updateData)}
-            )
-            if (byteLength === 0 && timeoutMs === 0) {
-                return receivePromise
-            } else {
-                return await receivePromise
+            if (option.rxDataHandler){
+                this._rxDataHandler = option.rxDataHandler
             }
+            const receivePromise = this._serialPort.startReceivePort(
+                this._idToObj[id].port,
+                {...option, 
+                    updateRx:(updateData:Uint8Array):boolean => this.updateRx(id, updateData)
+                }
+            )
+            return receivePromise
         }catch (e){
             if (e instanceof Error){
                 return e.toString()
@@ -150,6 +154,10 @@ export class JsSerialBase{
             }
         }
     }
+    async stopReceivePort(id:portIdType): Promise<void> {
+        return this._serialPort.stopReceivePort(this._idToObj[id].port)
+    }
+
     async sendPort(id:portIdType, msg: Uint8Array, option:object = {}): Promise<string> {
         try {
             return await this._serialPort.sendPort(this._idToObj[id].port, msg, option)

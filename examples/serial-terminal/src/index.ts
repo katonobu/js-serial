@@ -278,7 +278,7 @@ async function connectToPort(): Promise<void> {
           .forEach((data)=>term.writeln(data));
     }
   });
-  jsw.receivePort(portId, 0, 0)
+  jsw.startReceivePort(portId)
       .then(()=>{
         unsubscribe();
         if (portId !== undefined) {

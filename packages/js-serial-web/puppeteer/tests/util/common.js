@@ -67,7 +67,7 @@ const waitEventWithTimeout = async (page, expStr, timeoutMs=0) => {
             timerId = setTimeout(()=>{
 //                console.log("[waitConsoleOutWithTimeout]","Timeout")
                 page.off('console', consoleHandler)
-                reject("Timeout")
+                reject(`Wait Event Timeout:expStr=${expStr}, timeoutMs=${timeoutMs}`)
             }, timeoutMs)
         }
         page.on('console', consoleHandler)
