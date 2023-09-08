@@ -93,5 +93,6 @@ describe("CreatePortLen", () => {
                 document.title = sttStr
             }, newPortSttString + existingPortSttString + cancelSttString)
         }while(cancelled === false)
+        expect(newPortSttString + existingPortSttString + cancelSttString).toBe("✔✔✔")
     }, 3600*1000);
 });
