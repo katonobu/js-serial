@@ -1,5 +1,5 @@
-import { startReceiveReturnType } from "../../js-serial-core/lib/AbstractSerial";
-import WebSerailPort from "./WebSerialPort";
+import { startReceiveReturnType } from "../../../js-serial-core/lib/AbstractSerial";
+import WebSerailPort from "../WebSerialPort";
 
 let newOpenStt:boolean | null = null
 const validPortOption = {baudRate:115200} as SerialOptions
