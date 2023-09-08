@@ -42,7 +42,7 @@ let autoconnectCheckbox: HTMLInputElement;
 
 let portId: number | undefined;
 
-let jsw:JsSerialWeb | undefined;
+let jsw:JsSerialWeb = new JsSerialWeb();
 
 const bufferSize = 8 * 1024; // 8kB
 
@@ -66,13 +66,13 @@ term.onData((data) => {
     toFlush += data;
     if (data === '\r') {
       if (portId !== undefined) {
-        jsw?.sendPort(portId, encoder.encode(toFlush));
+        jsw.sendPort(portId, encoder.encode(toFlush));
         toFlush = '';
       }
     }
   } else {
     if (portId !== undefined) {
-      jsw?.sendPort(portId, encoder.encode(data));
+      jsw.sendPort(portId, encoder.encode(data));
     }
   }
 });
@@ -178,11 +178,9 @@ function clearTerminalContents(): void {
 async function getSelectedPort(): Promise<void> {
   if (portSelector.value == 'prompt') {
     try {
-      const portInfo = await jsw?.promptGrantAccess();
-      if (portInfo) {
-        const portOption = maybeAddNewPort(portInfo.id);
-        portOption.selected = true;
-      }
+      const portInfo = await jsw.promptGrantAccess();
+      const portOption = maybeAddNewPort(portInfo.id);
+      portOption.selected = true;
     } catch (e) {
       return;
     }
@@ -256,7 +254,7 @@ async function connectToPort(): Promise<void> {
   flowControlCheckbox.disabled = true;
 
   try {
-    await jsw?.openPort(portId, options);
+    await jsw.openPort(portId, options);
     term.writeln('<CONNECTED>');
     connectButton.textContent = 'Disconnect';
     connectButton.disabled = false;
@@ -268,24 +266,20 @@ async function connectToPort(): Promise<void> {
     markDisconnected();
     return;
   }
-  const unsubscribe = jsw?.subscribeRxLineNum(portId, ()=>{
+  const unsubscribe = jsw.subscribeRxLineNum(portId, ()=>{
     if (portId !== undefined) {
-      const rxLineNum = jsw?.getRxLineNum(portId);
-      if (rxLineNum) {
-        const rxData = jsw?.getRxLines(
-            portId,
-            rxLineNum.totalLines - rxLineNum.updatedLines,
-            rxLineNum.totalLines
-        );
-        rxData?.data.map((line)=>line.data.replace(/\r\n|\r|\n/,'')).forEach((data)=>term.writeln(data))
-      }
+      const rxLineNum = jsw.getRxLineNum(portId);
+      const rxData = jsw.getRxLines(
+          portId,
+          rxLineNum.totalLines - rxLineNum.updatedLines,
+          rxLineNum.totalLines
+      );
+      rxData.data.map((line)=>line.data.replace(/\r\n|\r|\n/,'')).forEach((data)=>term.writeln(data))
     }
   });
-  jsw?.receivePort(portId, 0, 0)
+  jsw.receivePort(portId, 0, 0)
       .then(()=>{
-        if (unsubscribe) {
-          unsubscribe();
-        }
+        unsubscribe();
         if (portId !== undefined){
           markDisconnected();
         }
@@ -303,7 +297,7 @@ async function disconnectFromPort(): Promise<void> {
 
   if (localPort !== undefined) {
     try {
-      jsw?.closePort(localPort);
+      jsw.closePort(localPort);
     } catch (e) {
       console.error(e);
       if (e instanceof Error) {
@@ -373,25 +367,22 @@ document.addEventListener('DOMContentLoaded', async () => {
   convertEolCheckbox.addEventListener('change', convertEolCheckboxHandler);
   convertEolCheckboxHandler();
 
-  jsw = new JsSerialWeb();
   await jsw.init();
   jsw.subscribePorts(()=>{
-    if (jsw) {
-      const portChangeStt = jsw.getPorts();
-      portChangeStt.attached.forEach((id:number)=>{
-        const portOption = addNewPort(id);
-        if (autoconnectCheckbox.checked) {
-          portOption.selected = true;
-          connectToPort();
-        }
-      });
-      portChangeStt.detached.forEach((id:number)=>{
-        const portOption = findPortOption(id);
-        if (portOption) {
-          portOption.remove();
-        }
-      });
-    }
+    const portChangeStt = jsw.getPorts();
+    portChangeStt.attached.forEach((id:number)=>{
+      const portOption = addNewPort(id);
+      if (autoconnectCheckbox.checked) {
+        portOption.selected = true;
+        connectToPort();
+      }
+    });
+    portChangeStt.detached.forEach((id:number)=>{
+      const portOption = findPortOption(id);
+      if (portOption) {
+        portOption.remove();
+      }
+    });
   });
   jsw.getPorts().attached.forEach((id:number)=>addNewPort(id));
 });
