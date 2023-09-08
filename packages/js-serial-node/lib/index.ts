@@ -1,5 +1,5 @@
-import { NodeSerialPort } from "./NodeSerialPort";
-import {JsSerialBase} from '../../js-serial-core/lib/BaseSerialPort'
+import { NodeSerialPort } from "./NodeSerial";
+import {JsSerialBase} from '../../js-serial-core/lib/BaseSerial'
 
 export default class JsSerialNode extends JsSerialBase{
     constructor(){  

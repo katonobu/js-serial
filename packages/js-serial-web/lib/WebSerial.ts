@@ -7,7 +7,7 @@ import {
     openOptionType,
     receivePortOptionType,
     startReceiveReturnType
-} from "../../js-serial-core/lib/AbstractSerialPort";
+} from "../../js-serial-core/lib/AbstractSerial";
 
 class Port {
     private _port:SerialPort

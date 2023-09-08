@@ -8,7 +8,7 @@ import {
     receivePortOptionType,
     startReceiveReturnType,
     devicePortType
-} from './AbstractSerialPort'
+} from './AbstractSerial'
 
 import {
     AbstractDataHandlerFunction,
@@ -16,7 +16,7 @@ import {
     DelimiterDataHandlerOptions,
     DelimiterDataHandler,
     JsSerialBase,
-} from './BaseSerialPort'
+} from './BaseSerial'
 
 export {
     JsSerialBase,

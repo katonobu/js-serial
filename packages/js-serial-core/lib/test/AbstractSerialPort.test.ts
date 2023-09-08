@@ -1,6 +1,6 @@
-import { NodeMockSerialPort } from '../NodeMockSerialPort'
-import { JsSerialBase } from '../BaseSerialPort';
-import JsSerialNodeMock from '../NodeMockSerialPort'
+import { NodeMockSerialPort } from '../NodeMockSerial'
+import { JsSerialBase } from '../BaseSerial';
+import JsSerialNodeMock from '../NodeMockSerial'
 
 describe("AbstractSerialPort", () => {
     it("PortManager instance", async () => {

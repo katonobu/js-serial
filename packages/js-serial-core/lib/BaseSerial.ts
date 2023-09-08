@@ -6,7 +6,7 @@ import {
     deviceKeyPortInfoAvailableType,    
     MicroStore, 
     AbstractSerialPort,
-} from './AbstractSerialPort'
+} from './AbstractSerial'
 
 interface rxLineNumType {
     totalLines:number;
