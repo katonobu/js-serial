@@ -2,22 +2,22 @@ import { SerialPortMock } from 'serialport'
 import { MockBinding } from '@serialport/binding-mock'
 import {
     JsSerialBase, 
-    AbstractSerialPort,
+    AbstractSerial,
     startReceiveReturnType,
     devicePortType, 
     receivePortOptionType    
 } from './index'
 
-export class NodeMockSerialPort extends AbstractSerialPort{
+export class NodeMockSerial extends AbstractSerial{
     private static portCount = 0
     private static intervalId:NodeJS.Timeout | undefined
     private static portManager:{updateRequest:()=>Promise<void>} | undefined
 
 
     static addPort = (vid:string ="0", pid:string="0"):string => {
-        const path = `/dev/MOCK${NodeMockSerialPort.portCount}`
+        const path = `/dev/MOCK${NodeMockSerial.portCount}`
         MockBinding.createPort(path, { echo: true, record: true, vendorId:vid, productId:pid })        
-        NodeMockSerialPort.portCount++
+        NodeMockSerial.portCount++
         return path
     }
     static reset = ():void => {
@@ -29,12 +29,12 @@ export class NodeMockSerialPort extends AbstractSerialPort{
     }
 
     init = async (opt:object) => {
-        if (!NodeMockSerialPort.intervalId) {
+        if (!NodeMockSerial.intervalId) {
             const {pollingIntervalMs = 1000 * 5, portManager} = opt as {pollingIntervalMs?:number, portManager:{updateRequest:()=>Promise<void>}}
-            NodeMockSerialPort.portManager = portManager
-            NodeMockSerialPort.intervalId = setInterval(()=>{
-                if (NodeMockSerialPort.portManager) {
-                    NodeMockSerialPort.portManager?.updateRequest()
+            NodeMockSerial.portManager = portManager
+            NodeMockSerial.intervalId = setInterval(()=>{
+                if (NodeMockSerial.portManager) {
+                    NodeMockSerial.portManager?.updateRequest()
                 }
             }, pollingIntervalMs)
         }
@@ -90,16 +90,16 @@ export class NodeMockSerialPort extends AbstractSerialPort{
         throw (new Error("not implemented yet"))
     }
     finalize = async (opt:object) => {
-        if (NodeMockSerialPort.intervalId) {
-            clearInterval(NodeMockSerialPort.intervalId)
-            NodeMockSerialPort.intervalId = undefined
-            NodeMockSerialPort.portManager = undefined
+        if (NodeMockSerial.intervalId) {
+            clearInterval(NodeMockSerial.intervalId)
+            NodeMockSerial.intervalId = undefined
+            NodeMockSerial.portManager = undefined
         }
     }
 }
 export default class JsSerialNodeMock extends JsSerialBase{
     constructor(){
-        const nsp = new NodeMockSerialPort()
+        const nsp = new NodeMockSerial()
         super(nsp)
     }
 }

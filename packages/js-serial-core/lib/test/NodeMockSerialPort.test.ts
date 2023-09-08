@@ -1,10 +1,10 @@
-import { NodeMockSerialPort } from '../NodeMockSerial'
+import { NodeMockSerial } from '../NodeMockSerial'
 
-describe("NodeMockSerialPort", () => {
+describe("NodeMockSerial", () => {
     it("getDeviceKeyPortInfos", async () => {
-        const paths = [0,1].map((_)=>NodeMockSerialPort.addPort())
-        const ns = new NodeMockSerialPort()
-        expect(ns).toBeInstanceOf(NodeMockSerialPort)
+        const paths = [0,1].map((_)=>NodeMockSerial.addPort())
+        const ns = new NodeMockSerial()
+        expect(ns).toBeInstanceOf(NodeMockSerial)
         const dkpis = await ns.getDeviceKeyPortInfos()
 //        console.log(dkpis)
         dkpis.forEach((dkpi)=>{
@@ -16,6 +16,6 @@ describe("NodeMockSerialPort", () => {
         dkpis.forEach((dkpi, idx)=>{
             expect(dkpi.key).toBe(paths[idx])
         })
-        NodeMockSerialPort.reset()
+        NodeMockSerial.reset()
     })
 });

@@ -5,7 +5,7 @@ import {
     openOptionType,
     deviceKeyPortInfoAvailableType,    
     MicroStore, 
-    AbstractSerialPort,
+    AbstractSerial,
 } from './AbstractSerial'
 
 interface rxLineNumType {
@@ -69,12 +69,12 @@ export class JsSerialBase{
     private _openCloseSttStore:MicroStore<boolean>[]
     private _rxLineBuffers:rxLineBuffType[][]
     private _rxLineNumStore:MicroStore<rxLineNumType>[]
-    private _serialPort:AbstractSerialPort
+    private _serial:AbstractSerial
     private _rxDataHandler:AbstractDataHandler
     private _updateCount:number
 
     constructor(
-        serialPort:AbstractSerialPort,
+        serial:AbstractSerial,
     ){
         this._idToObj = []
         this._currentKeysCache  = []
@@ -82,18 +82,18 @@ export class JsSerialBase{
         this._openCloseSttStore = []
         this._rxLineBuffers = []
         this._rxLineNumStore = []
-        this._serialPort = serialPort
+        this._serial = serial
         this._rxDataHandler = new DelimiterDataHandler()
         this._updateCount = 0
     }
 
     async init(opt:{pollingIntervalMs?:number} = {}):Promise<void> {
-        await this._serialPort.init({portManager:this, pollingIntervalMs:opt?.pollingIntervalMs})
+        await this._serial.init({portManager:this, pollingIntervalMs:opt?.pollingIntervalMs})
         await this.updateRequest()
     }
     async promptGrantAccess(option:any/*createOption*/ = {}):Promise<portInfoType> {
         try {
-            const newPort = await this._serialPort.promptGrantAccess(option)
+            const newPort = await this._serial.promptGrantAccess(option)
             await this.updateRequest()
             const matched:deviceKeyPortInfoAvailableType|undefined = this._idToObj.find((obj)=>obj.key===newPort)
             return matched?.info ?? {id:-1, pid:-1, vid:-1}
@@ -104,7 +104,7 @@ export class JsSerialBase{
     }
     async deletePort(id:portIdType):Promise<portInfoType> {
         try {
-            const ret = await this._serialPort.deletePort(this._idToObj[id])
+            const ret = await this._serial.deletePort(this._idToObj[id])
             await this.updateRequest()
             return ret
         } catch (e) {
@@ -114,7 +114,7 @@ export class JsSerialBase{
     }
     async openPort(id:portIdType, option:openOptionType = {baudRate:115200}):Promise<string> {
         try {
-            const ret = await this._serialPort.openPort(this._idToObj[id].port, option)
+            const ret = await this._serial.openPort(this._idToObj[id].port, option)
             this._openCloseSttStore[id].update(true)
             return ret
         }catch (e){
@@ -131,7 +131,7 @@ export class JsSerialBase{
             if (option.rxDataHandler){
                 this._rxDataHandler = option.rxDataHandler
             }
-            return this._serialPort.startReceivePort(
+            return this._serial.startReceivePort(
                 this._idToObj[id].port,
                 {...option, 
                     updateRx:(updateData:Uint8Array):boolean => this.updateRx(id, updateData)
@@ -147,7 +147,7 @@ export class JsSerialBase{
     }
     async stopReceivePort(id:portIdType): Promise<string> {
         try {
-            return this._serialPort.stopReceivePort(this._idToObj[id].port)
+            return this._serial.stopReceivePort(this._idToObj[id].port)
         }catch (e){
             if (e instanceof Error){
                 return 'ERROR :'+e.toString()
@@ -159,7 +159,7 @@ export class JsSerialBase{
 
     async sendPort(id:portIdType, msg: Uint8Array, option:object = {}): Promise<string> {
         try {
-            return await this._serialPort.sendPort(this._idToObj[id].port, msg, option)
+            return await this._serial.sendPort(this._idToObj[id].port, msg, option)
         }catch (e){
             if (e instanceof Error){
                 return 'ERROR :'+e.toString()
@@ -170,7 +170,7 @@ export class JsSerialBase{
     }
     async closePort(id:portIdType):Promise<string> {
         try {
-            const ret = await this._serialPort.closePort(this._idToObj[id].port)
+            const ret = await this._serial.closePort(this._idToObj[id].port)
             this._openCloseSttStore[id].update(false)
             return ret
         }catch (e){
@@ -182,11 +182,11 @@ export class JsSerialBase{
         }
     }
     async finalize():Promise<void> {
-        return this._serialPort.finalize({})
+        return this._serial.finalize({})
     }
 
     async updateRequest():Promise<void>{
-        const portKeyObjInfos = await this._serialPort.getDeviceKeyPortInfos()
+        const portKeyObjInfos = await this._serial.getDeviceKeyPortInfos()
 
         const latestKeys = portKeyObjInfos.map((pkoi)=>pkoi.key)
         const currentKeys = this._currentKeysCache
@@ -209,7 +209,7 @@ export class JsSerialBase{
                         matched.available = true
                         const portKeyObjInfoFromKey = portKeyObjInfos.find((pkoi)=>pkoi.key===key)
                         if (portKeyObjInfoFromKey && portKeyObjInfoFromKey.info.portName) {
-                            matched.port = this._serialPort.createPort(portKeyObjInfoFromKey.info.portName)
+                            matched.port = this._serial.createPort(portKeyObjInfoFromKey.info.portName)
                             attachedIds.push(matched.info.id)
                         } else {
                             // キーに対応するポートがない or port名が設定されていない
@@ -242,7 +242,7 @@ export class JsSerialBase{
                             this._idToObj.push({
                                 key,
                                 available:true,
-                                port:this._serialPort.createPort(portObjInfoFromKey.info.portName),
+                                port:this._serial.createPort(portObjInfoFromKey.info.portName),
                                 info:{
                                     id:newId,
                                     pid:portObjInfoFromKey.info.pid, 

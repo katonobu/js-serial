@@ -1,12 +1,12 @@
 import {
-    AbstractSerialPort,
+    AbstractSerial,
     startReceiveReturnType,
     devicePortType, 
     receivePortOptionType    
 } from "../../js-serial-core/lib/index"
 import { SerialPort} from 'serialport'
 
-export class NodeSerialPort extends AbstractSerialPort{
+export class NodeSerial extends AbstractSerial{
     private static intervalId:NodeJS.Timeout | undefined
     private static portManager:{updateRequest:()=>Promise<void>} | undefined
 
@@ -15,12 +15,12 @@ export class NodeSerialPort extends AbstractSerialPort{
     }
 
     init = async (opt:object) => {
-        if (!NodeSerialPort.intervalId) {
+        if (!NodeSerial.intervalId) {
             const {pollingIntervalMs = 1000 * 5, portManager} = opt as {pollingIntervalMs?:number, portManager:{updateRequest:()=>Promise<void>}}
-            NodeSerialPort.portManager = portManager
-            NodeSerialPort.intervalId = setInterval(()=>{
-                if (NodeSerialPort.portManager) {
-                    NodeSerialPort.portManager?.updateRequest()
+            NodeSerial.portManager = portManager
+            NodeSerial.intervalId = setInterval(()=>{
+                if (NodeSerial.portManager) {
+                    NodeSerial.portManager?.updateRequest()
                 }
             }, pollingIntervalMs)
         }
@@ -76,10 +76,10 @@ export class NodeSerialPort extends AbstractSerialPort{
         throw (new Error("not implemented yet"))
     }
     finalize = async (opt:object) => {
-        if (NodeSerialPort.intervalId) {
-            clearInterval(NodeSerialPort.intervalId)
-            NodeSerialPort.intervalId = undefined
-            NodeSerialPort.portManager = undefined
+        if (NodeSerial.intervalId) {
+            clearInterval(NodeSerial.intervalId)
+            NodeSerial.intervalId = undefined
+            NodeSerial.portManager = undefined
         }
     }
 }

@@ -1,8 +1,8 @@
-import { NodeMockSerialPort } from '../NodeMockSerial'
+import { NodeMockSerial } from '../NodeMockSerial'
 import { JsSerialBase } from '../BaseSerial';
 import JsSerialNodeMock from '../NodeMockSerial'
 
-describe("AbstractSerialPort", () => {
+describe("AbstractSerial", () => {
     it("PortManager instance", async () => {
         const jsnm = new JsSerialNodeMock()
         expect(jsnm).toBeInstanceOf(JsSerialBase)
@@ -69,17 +69,17 @@ describe("AbstractSerialPort", () => {
         const mockCallbackMayCalledOnce = jest.fn()
         let unsubscribe = jsnm.subscribePorts(mockCallbackMayCalledOnce)
 
-        NodeMockSerialPort.addPort()
+        NodeMockSerial.addPort()
         await jsnm.init({})
         expect(mockCallbackMayCalledOnce).toHaveBeenCalledTimes(1);
 
-        NodeMockSerialPort.addPort()
+        NodeMockSerial.addPort()
         await jsnm.updateRequest()
         expect(mockCallbackMayCalledOnce).toHaveBeenCalledTimes(2);
 
         unsubscribe()
         await jsnm.finalize()
-        NodeMockSerialPort.reset()
+        NodeMockSerial.reset()
     })
 
 
@@ -89,23 +89,23 @@ describe("AbstractSerialPort", () => {
         const mockCallbackMayCalledOnce = jest.fn()
         let unsubscribe = jsnm.subscribePorts(mockCallbackMayCalledOnce)
 
-        NodeMockSerialPort.addPort()
+        NodeMockSerial.addPort()
         await jsnm.init({})
         expect(mockCallbackMayCalledOnce).toHaveBeenCalledTimes(1);
 
-        // NodeMockSerialPort.addPort() // don't add the port, this skips callback
+        // NodeMockSerial.addPort() // don't add the port, this skips callback
         await jsnm.updateRequest()
         expect(mockCallbackMayCalledOnce).toHaveBeenCalledTimes(1);
 
         unsubscribe()
         await jsnm.finalize()
-        NodeMockSerialPort.reset()
+        NodeMockSerial.reset()
     })
 
     it("PortManager Add Port pollig check", async () => {
         const jsnm = new JsSerialNodeMock()
 
-        NodeMockSerialPort.addPort()
+        NodeMockSerial.addPort()
 
         try {
             await new Promise((resolve, reject)=>{
@@ -119,7 +119,7 @@ describe("AbstractSerialPort", () => {
                 }, pollingIntervalMs * 10)
                 const addPortTimeId = setTimeout(()=>{
                     clearTimeout(addPortTimeId)
-                    NodeMockSerialPort.addPort()
+                    NodeMockSerial.addPort()
                 }, pollingIntervalMs * 3)
                 const mockCallbackMayCalledTwice = jest.fn()
                 mockCallbackMayCalledTwice.mockImplementation(()=>{
@@ -148,15 +148,15 @@ describe("AbstractSerialPort", () => {
         }
 
         await jsnm.finalize()
-        NodeMockSerialPort.reset()
+        NodeMockSerial.reset()
     })
     it("PortManager Delete Port pollig check", async () => {
         const jsnm = new JsSerialNodeMock()
 
         const pollingIntervalMs = 100
         await new Promise((resolve) => {
-            NodeMockSerialPort.addPort()
-            NodeMockSerialPort.addPort()
+            NodeMockSerial.addPort()
+            NodeMockSerial.addPort()
     
             const mockCallbackMayCalledInit = jest.fn()
             mockCallbackMayCalledInit.mockImplementation(()=>{
@@ -185,7 +185,7 @@ describe("AbstractSerialPort", () => {
                 const addPortTimeId = setTimeout(()=>{
 //                    console.log("Delete")
                     clearTimeout(addPortTimeId)
-                    NodeMockSerialPort.reset()
+                    NodeMockSerial.reset()
                 }, pollingIntervalMs * 3)
                 const mockCallbackMayCalledOnce = jest.fn()
                 mockCallbackMayCalledOnce.mockImplementation(()=>{
@@ -213,7 +213,7 @@ describe("AbstractSerialPort", () => {
         }
 
         await jsnm.finalize()
-        NodeMockSerialPort.reset()
+        NodeMockSerial.reset()
 
     })
 

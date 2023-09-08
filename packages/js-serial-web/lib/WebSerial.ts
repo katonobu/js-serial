@@ -1,5 +1,5 @@
 import {
-    AbstractSerialPort,
+    AbstractSerial,
     portInfoType,
     devicePortType,
     deviceKeyPortInfoType,
@@ -182,7 +182,7 @@ class Port {
 }
 
 
-export class WebSerialPort extends AbstractSerialPort{
+export class WebSerial extends AbstractSerial{
     // https://ja.stackoverflow.com/questions/2046/javascript%E5%AE%9F%E8%A1%8C%E7%92%B0%E5%A2%83%E3%81%AE%E5%88%A4%E5%AE%9A%E6%96%B9%E6%B3%95%E3%81%AB%E3%81%A4%E3%81%84%E3%81%A6
     // @ts-ignore
     private static isNode:boolean = (typeof process !== "undefined" && typeof require !== "undefined")
@@ -194,7 +194,7 @@ export class WebSerialPort extends AbstractSerialPort{
 
     init = async (opt:object):Promise<void> => {
         const option = opt as {portManager:{updateRequest:()=>Promise<void>}}
-        if (WebSerialPort.isNode) {
+        if (WebSerial.isNode) {
             throw(new Error("js-serial-web exected in node environment"))
         } else {
             if (this.callUpdateRequest === undefined){
@@ -206,7 +206,7 @@ export class WebSerialPort extends AbstractSerialPort{
     }
 
     getDeviceKeyPortInfos = async ():Promise<deviceKeyPortInfoType[]>=>{
-        if (WebSerialPort.isNode) {
+        if (WebSerial.isNode) {
             throw(new Error("js-serial-web exected in node environment"))
         } else {
             const currentPorts = await navigator.serial.getPorts()
@@ -227,7 +227,7 @@ export class WebSerialPort extends AbstractSerialPort{
         }
     }
     promptGrantAccess = async (opt:object):Promise<devicePortType>=> {
-        if (WebSerialPort.isNode) {
+        if (WebSerial.isNode) {
             throw(new Error("js-serial-web exected in node environment"))
         } else {
             const requestOption = opt as SerialPortRequestOptions
@@ -238,7 +238,7 @@ export class WebSerialPort extends AbstractSerialPort{
         throw(new Error(`js-serial-web dosen't support createPort : ${path}`))
     }
     deletePort = async (dp:deviceKeyPortInfoAvailableType):Promise<portInfoType> => {
-        if (WebSerialPort.isNode) {
+        if (WebSerial.isNode) {
             throw(new Error("js-serial-web exected in node environment"))
         } else {
             const port = dp.port as Port
@@ -247,7 +247,7 @@ export class WebSerialPort extends AbstractSerialPort{
         }
     }
     openPort = async (dp:devicePortType, opt:openOptionType):Promise<string>=>{
-        if (WebSerialPort.isNode) {
+        if (WebSerial.isNode) {
             throw(new Error("js-serial-web exected in node environment"))
         } else {
             const port = dp as Port
@@ -255,7 +255,7 @@ export class WebSerialPort extends AbstractSerialPort{
         }
     }
     startReceivePort = async (dp:devicePortType, option: receivePortOptionType):Promise<startReceiveReturnType> => {
-        if (WebSerialPort.isNode) {
+        if (WebSerial.isNode) {
             throw(new Error("js-serial-web exected in node environment"))
         } else {
             const port = dp as Port
@@ -263,7 +263,7 @@ export class WebSerialPort extends AbstractSerialPort{
         }
     }
     stopReceivePort = async (dp:devicePortType):Promise<string> => {
-        if (WebSerialPort.isNode) {
+        if (WebSerial.isNode) {
             throw(new Error("js-serial-web exected in node environment"))
         } else {
             const port = dp as Port
@@ -276,7 +276,7 @@ export class WebSerialPort extends AbstractSerialPort{
         // @ts-ignore
         option:any
     ):Promise<string> => {
-        if (WebSerialPort.isNode) {
+        if (WebSerial.isNode) {
             throw(new Error("js-serial-web exected in node environment"))
         } else {
             const port = dp as Port
@@ -284,7 +284,7 @@ export class WebSerialPort extends AbstractSerialPort{
         }
     }
     closePort = async (dp:object):Promise<string>=>{
-        if (WebSerialPort.isNode) {
+        if (WebSerial.isNode) {
             throw(new Error("js-serial-web exected in node environment"))
         } else {
             const port = dp as Port
@@ -292,7 +292,7 @@ export class WebSerialPort extends AbstractSerialPort{
         }
     }
     finalize = async ():Promise<void> => {
-        if (WebSerialPort.isNode) {
+        if (WebSerial.isNode) {
             throw(new Error("js-serial-web exected in node environment"))
         } else {
             if (this.callUpdateRequest) {

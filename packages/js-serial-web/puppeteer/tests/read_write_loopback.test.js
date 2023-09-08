@@ -138,7 +138,6 @@ describe("ReadWriteLoopback", () => {
         // 送信前にたまっているデータ位置を確認しておく
         const prevReceiveLinesData = await clickAndWait(page, '#receive_lines',"receive_lines", 100)
         const prevDataStartIndex = prevReceiveLinesData.rsp.data.length
-        console.log("prevDataStartIndex", prevDataStartIndex)
 
         // 文字列送信
         await clickAndWait(page, '#send',"send", 100)
@@ -147,7 +146,7 @@ describe("ReadWriteLoopback", () => {
         await new Promise((resolve)=>setTimeout(resolve, 100))
         // 今回受信したデータ列を抽出
         const newReceiveLinesData = await clickAndWait(page, '#receive_lines',"receive_lines", 100)
-        console.log(JSON.stringify(newReceiveLinesData, null, 2))
+//        console.log(JSON.stringify(newReceiveLinesData, null, 2))
         const newDataLength = newReceiveLinesData.rsp.data.length
         const actDatas = []
         for (let idx = prevDataStartIndex; idx < newDataLength; idx++) {

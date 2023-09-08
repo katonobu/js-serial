@@ -1,5 +1,5 @@
 import {
-    AbstractSerialPort,
+    AbstractSerial,
     MicroStore,
     portIdType,
     portInfoType,
@@ -26,7 +26,7 @@ export {
     DelimiterDataHandlerOptions,
     DelimiterDataHandler,
 
-    AbstractSerialPort,
+    AbstractSerial,
     MicroStore,
     portIdType,
     portInfoType,

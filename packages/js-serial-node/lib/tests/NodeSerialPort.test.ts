@@ -1,9 +1,9 @@
-import { NodeSerialPort } from '../NodeSerial'
+import { NodeSerial } from '../NodeSerial'
 
-describe("NodeSerialPort", () => {
+describe("NodeSerial", () => {
     it("getDeviceKeyPortInfos", async () => {
-        const ns = new NodeSerialPort()
-        expect(ns).toBeInstanceOf(NodeSerialPort)
+        const ns = new NodeSerial()
+        expect(ns).toBeInstanceOf(NodeSerial)
         const dkpis = await ns.getDeviceKeyPortInfos()
         //  console.log(dkpis)
         dkpis.forEach((dkpi)=>{

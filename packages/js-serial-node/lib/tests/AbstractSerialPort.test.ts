@@ -1,6 +1,6 @@
 import JsSerialNode from '../index'
 
-describe("AbstractSerialPort", () => {
+describe("AbstractSerial", () => {
     it("PortManager instance", async () => {
         const jsn = new JsSerialNode()
         expect(jsn).toBeInstanceOf(JsSerialNode)
