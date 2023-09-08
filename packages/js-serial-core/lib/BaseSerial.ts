@@ -134,7 +134,8 @@ export class JsSerialBase{
             return this._serial.startReceivePort(
                 this._idToObj[id].port,
                 {...option, 
-                    updateRx:(updateData:Uint8Array):boolean => this.updateRx(id, updateData)
+                    updateRx:(updateData:Uint8Array):boolean => this.updateRx(id, updateData),
+                    updateOpenStt:(updateStt:boolean):void => this._openCloseSttStore[id].update(updateStt)
                 }
             )
         }catch (e){

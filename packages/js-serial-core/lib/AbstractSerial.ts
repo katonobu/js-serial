@@ -26,6 +26,7 @@ export type openOptionType = {
 
 export type receivePortOptionType = {
     updateRx:(arg0: Uint8Array)=>boolean
+    updateOpenStt:(arg0: boolean)=>void
     recoverableErrorCountMax?:number
     bufferSize?: number
 }
@@ -51,8 +52,10 @@ export class MicroStore<T> {
         };
     }
     update(newObj: T) {
-        this.obj = newObj
-        this.callbacks.forEach(cb => cb())
+        if (this.obj != newObj) {
+            this.obj = newObj
+            this.callbacks.forEach(cb => cb())
+        }
     }
     get(): T {
         return this.obj

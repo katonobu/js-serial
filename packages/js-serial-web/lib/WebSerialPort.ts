@@ -6,7 +6,7 @@ import {
 export default class WebSerailPort {
     private readonly _port:SerialPort
     private _stopReadReq:boolean
-    private _closeReq:boolean
+    private _stopReqFromClose:boolean
     private _reader:
     | ReadableStreamDefaultReader<Uint8Array>
     | ReadableStreamBYOBReader
@@ -14,7 +14,7 @@ export default class WebSerailPort {
     constructor(serialPort:SerialPort) {
         this._port = serialPort
         this._stopReadReq = false
-        this._closeReq = false
+        this._stopReqFromClose = false
         this._reader = undefined
     }
     deletePort = async ():Promise<string> => {    
@@ -38,6 +38,7 @@ export default class WebSerailPort {
     }
     startReceivePort = async (option: receivePortOptionType):Promise<startReceiveReturnType> => {
         let result:startReceiveReturnType | undefined = undefined
+        let getLockFailed:boolean = false
         const port = this._port
         if (!port) {
             throw new Error("Invalid Id is specified to startReceivePort()")
@@ -52,6 +53,7 @@ export default class WebSerailPort {
             // read infinit until close
             const { 
                 updateRx,
+                updateOpenStt,
                 recoverableErrorCountMax = 10,
                 bufferSize = 8 * 1024 /* 8KB */ 
             } = option
@@ -93,6 +95,15 @@ export default class WebSerailPort {
                         }
                     }
                 } catch (e) {
+                    if (e instanceof TypeError) {
+                        // fail to get lock
+                        // this may protected by `if (port.readable.locked)`
+                        // but just in case, and prevent to infinit loop
+                        // break this loop
+                        getLockFailed = true
+                        this._stopReadReq = true
+                        break
+                    }
                     if (e instanceof DOMException) {
                         if (e.name === "NetworkError") {
                             // USB Disconnected
@@ -112,11 +123,13 @@ export default class WebSerailPort {
                             errorCounts.uk++
                             errorCount++
                         } else {
+                            // uncategorized error.
                             errorCounts.ot++
                             errorCount++
                         }
                     }
                     if (recoverableErrorCountMax < errorCount) {
+                        this._stopReadReq = true
                         break
                     }
                 } finally {
@@ -127,24 +140,41 @@ export default class WebSerailPort {
                 }
             }
 
-            if (this._stopReadReq === true) {
+            if (getLockFailed || (recoverableErrorCountMax < errorCount) || this._stopReadReq === false){
+                let closeError = undefined
+                try {
+                    await this.closePort()
+                    updateOpenStt(false)
+                } catch (e) {
+                    closeError = e
+                }
+                if (getLockFailed) {
+                    this._stopReadReq = false
+                    throw new Error('Fail to get lock ReadableStream in startReceivePort()')
+                } else if (recoverableErrorCountMax < errorCount) {
+                    this._stopReadReq = false
+                    throw new Error(`Too many recoverble errors:${JSON.stringify(errorCounts)}`)
+                } else if (this._stopReadReq === false) {
+                    if (closeError) {
+                        throw closeError
+                    } else {
+                        result = "UsbDetached"
+                    }
+                } else {
+                    if (closeError) {
+                        throw closeError
+                    } else {
+                        throw new Error('Unexpected error in startReceivePort()')
+                    }
+                }
+            } else {
                 this._stopReadReq = false
-                if (this._closeReq === true) {
-                    this._closeReq = false
+                if (this._stopReqFromClose === true) {
+                    this._stopReqFromClose = false
                     result = "Close"
                 } else {
                     result = "Stop"
                 }
-            } else {
-                try {
-                    await this.closePort()
-                } catch (e) {
-                    throw e
-                }
-                if (recoverableErrorCountMax < errorCount) {
-                    throw new Error(`Too many recoverble errors:${JSON.stringify(errorCounts)}`)
-                }
-                result = "UsbDetached"
             }
         }
         return result
@@ -161,7 +191,7 @@ export default class WebSerailPort {
             throw new Error("Receive may not started, but try to stopReceivePort()")
         } else {
             this._stopReadReq = true
-            this._closeReq = false
+            this._stopReqFromClose = false
             await this._reader.cancel()
         }
         return "OK"
@@ -192,7 +222,7 @@ export default class WebSerailPort {
         } else {
             if (this._reader) {
                 this._stopReadReq = true
-                this._closeReq = true
+                this._stopReqFromClose = true
                 await this._reader.cancel()
             }
             await port.close()

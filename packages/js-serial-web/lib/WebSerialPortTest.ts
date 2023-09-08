@@ -1,9 +1,14 @@
 import { startReceiveReturnType } from "../../js-serial-core/lib/AbstractSerial";
 import WebSerailPort from "./WebSerialPort";
 
+let newOpenStt:boolean | null = null
 const validPortOption = {baudRate:115200} as SerialOptions
 const dummyUpdateRx = (data:Uint8Array)=>{console.log(data);return false}
-const validStartRxOption = {updateRx:dummyUpdateRx}
+const dummyUpdateOpenStt = (newStt:boolean)=>{newOpenStt = newStt}
+const validStartRxOption = {
+    updateRx:dummyUpdateRx,
+    updateOpenStt:dummyUpdateOpenStt
+}
 
 const initWithNull = async ()=> {
     let okCount = 0
@@ -106,14 +111,34 @@ const readPort = async (validPort:SerialPort)=> {
     }
 
     // start/stop
-    ((await wsp.openPort(validPortOption)) === 'OK')?okCount++:ngCount++
+    if((await wsp.openPort(validPortOption)) === 'OK'){
+        okCount++
+    }else {
+        ngCount++
+    }
     let receivePromise:Promise<startReceiveReturnType> = wsp.startReceivePort(validStartRxOption);
-    ((await wsp.stopReceivePort()) === 'OK')?okCount++:ngCount++
-    (await receivePromise === 'Stop')?okCount++:ngCount++
-    ((await wsp.closePort()) === 'OK')?okCount++:ngCount++
+    if((await wsp.stopReceivePort()) === 'OK'){
+        okCount++
+    }else{
+        ngCount++
+    }
+    if((await receivePromise) === 'Stop'){
+        okCount++
+    }else{
+        ngCount++
+    }
+    if((await wsp.closePort()) === 'OK'){
+        okCount++
+    } else {
+        ngCount++
+    }
 
     // readableがロックされているときにport.readable.getReader()したら例外が発生する
-    ((await wsp.openPort(validPortOption)) === 'OK')?okCount++:ngCount++
+    if((await wsp.openPort(validPortOption)) === 'OK'){
+        okCount++
+    } else {
+        ngCount++
+    }
     receivePromise = wsp.startReceivePort(validStartRxOption);
     try{
         if (validPort.readable){
@@ -124,12 +149,28 @@ const readPort = async (validPort:SerialPort)=> {
         console.log(e)
         okCount++
     }
-    ((await wsp.stopReceivePort()) === 'OK')?okCount++:ngCount++
-    (await receivePromise === 'Stop')?okCount++:ngCount++
-    ((await wsp.closePort()) === 'OK')?okCount++:ngCount++
+    if ((await wsp.stopReceivePort()) === 'OK'){
+        okCount++
+    } else {
+        ngCount++
+    }
+    if(await receivePromise === 'Stop'){
+        okCount++
+    } else {
+        ngCount++
+    }        
+    if((await wsp.closePort()) === 'OK'){
+        okCount++
+    } else {
+        ngCount++
+    }        
 
     // startReceivePortの多重発行
-    ((await wsp.openPort(validPortOption)) === 'OK')?okCount++:ngCount++
+    if((await wsp.openPort(validPortOption)) === 'OK'){
+        okCount++
+    } else {
+        ngCount++
+    }
     receivePromise = wsp.startReceivePort(validStartRxOption);
     try {
         await wsp.startReceivePort(validStartRxOption)
@@ -138,23 +179,60 @@ const readPort = async (validPort:SerialPort)=> {
         console.log(e)
         okCount++
     }
-    ((await wsp.stopReceivePort()) === 'OK')?okCount++:ngCount++
-    ((await receivePromise) === 'Stop')?okCount++:ngCount++
-    ((await wsp.closePort()) === 'OK')?okCount++:ngCount++
-
+    if((await wsp.stopReceivePort()) === 'OK'){
+        okCount++
+    } else {
+        ngCount++
+    }        
+    if((await receivePromise) === 'Stop'){
+        okCount++
+    } else {
+        ngCount++
+    }
+    if ((await wsp.closePort()) === 'OK'){
+        okCount++
+    } else {
+        ngCount++
+    }
     // read中のclose
-    ((await wsp.openPort(validPortOption)) === 'OK')?okCount++:ngCount++
+    if ((await wsp.openPort(validPortOption)) === 'OK') {
+        okCount++
+    } else {
+        ngCount++
+    }
     receivePromise = wsp.startReceivePort(validStartRxOption);
-    ((await wsp.closePort()) === 'OK')?okCount++:ngCount++
-    ((await receivePromise) === 'Close')?okCount++:ngCount++
+    if ((await wsp.closePort()) === 'OK') {
+        okCount++
+    } else {
+        ngCount++
+    }
+    if ((await receivePromise) === 'Close') {
+        okCount++
+    } else {
+        ngCount++
+    }
 
     // read中のUSB取り外し
     try{
-        ((await wsp.openPort(validPortOption)) === 'OK')?okCount++:ngCount++
+        if ((await wsp.openPort(validPortOption)) === 'OK') {
+            okCount++
+        } else {
+            ngCount++
+        }
         receivePromise = wsp.startReceivePort(validStartRxOption);
         const prevPortCount = (await navigator.serial.getPorts()).length
         window.alert("USBを取り外してください");
-        ((await receivePromise) === 'UsbDetached')?okCount++:ngCount++
+        if ((await receivePromise) === 'UsbDetached') {
+            okCount++
+        } else {
+            ngCount++
+        }
+        if (newOpenStt === false) {
+            okCount++
+        } else {
+            ngCount++
+        }
+        newOpenStt = null
         window.alert("USBを接続してください")
         let currentPortCount = (await navigator.serial.getPorts()).length
         while(prevPortCount != currentPortCount) {
