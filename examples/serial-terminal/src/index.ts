@@ -42,7 +42,7 @@ let autoconnectCheckbox: HTMLInputElement;
 
 let portId: number | undefined;
 
-let jsw:JsSerialWeb = new JsSerialWeb();
+const jsw:JsSerialWeb = new JsSerialWeb();
 
 const bufferSize = 8 * 1024; // 8kB
 
@@ -274,13 +274,14 @@ async function connectToPort(): Promise<void> {
           rxLineNum.totalLines - rxLineNum.updatedLines,
           rxLineNum.totalLines
       );
-      rxData.data.map((line)=>line.data.replace(/\r\n|\r|\n/,'')).forEach((data)=>term.writeln(data))
+      rxData.data.map((line)=>line.data.replace(/\r\n|\r|\n/, ''))
+          .forEach((data)=>term.writeln(data));
     }
   });
   jsw.receivePort(portId, 0, 0)
       .then(()=>{
         unsubscribe();
-        if (portId !== undefined){
+        if (portId !== undefined) {
           markDisconnected();
         }
       });
