@@ -1,5 +1,8 @@
 import {
-    AbstractSerialPort
+    AbstractSerialPort,
+    startReceiveReturnType,
+    devicePortType, 
+    receivePortOptionType    
 } from "../../js-serial-core/lib/index"
 import { SerialPort} from 'serialport'
 
@@ -50,17 +53,19 @@ export class NodeSerialPort extends AbstractSerialPort{
         // @ts-ignore
         dp, opt
     )=>Promise.resolve()
-    receivePort = (
-        // @ts-ignore
-        deviePort, byteLength, timeoutMs, option
-    ) => {
+    startReceivePort = (
+        deviePort:devicePortType, option:receivePortOptionType
+    ):Promise<startReceiveReturnType> => {
+        return Promise.resolve("Close")
+    }
+    stopReceivePort = ()=>{
         return Promise.resolve()
     }
     sendPort = (
         // @ts-ignore
         deviePort, msg, option
     ) => {
-        return Promise.resolve()
+        return Promise.resolve("")
     }
 
     closePort = (

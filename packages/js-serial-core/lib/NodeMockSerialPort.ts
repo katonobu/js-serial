@@ -3,8 +3,9 @@ import { MockBinding } from '@serialport/binding-mock'
 import {
     JsSerialBase, 
     AbstractSerialPort,
-    AbstractDataHandler, 
-    DelimiterDataHandler
+    startReceiveReturnType,
+    devicePortType, 
+    receivePortOptionType    
 } from './index'
 
 export class NodeMockSerialPort extends AbstractSerialPort{
@@ -66,17 +67,19 @@ export class NodeMockSerialPort extends AbstractSerialPort{
         // @ts-ignore
         dp, opt
     )=>Promise.resolve()
-    receivePort = (
-        // @ts-ignore
-        deviePort, byteLength, timeoutMs, option
-    ) => {
+    startReceivePort = (
+        deviePort:devicePortType, option:receivePortOptionType
+    ):Promise<startReceiveReturnType> => {
+        return Promise.resolve("Close")
+    }
+    stopReceivePort = ()=>{
         return Promise.resolve()
     }
     sendPort = (
         // @ts-ignore
         deviePort, msg, option
     ) => {
-        return Promise.resolve()
+        return Promise.resolve("")
     }
 
     closePort = (
@@ -92,10 +95,8 @@ export class NodeMockSerialPort extends AbstractSerialPort{
     }
 }
 export default class JsSerialNodeMock extends JsSerialBase{
-    constructor(
-        rxDataHandler:AbstractDataHandler = new DelimiterDataHandler()
-    ){  
+    constructor(){
         const nsp = new NodeMockSerialPort()
-        super(nsp, rxDataHandler)
+        super(nsp)
     }
 }

@@ -6,6 +6,8 @@ import {
     compareKeyType,
     deviceKeyPortInfoAvailableType,
     receivePortOptionType,
+    startReceiveReturnType,
+    devicePortType
 } from './AbstractSerialPort'
 
 import {
@@ -31,4 +33,6 @@ export {
     compareKeyType,
     deviceKeyPortInfoAvailableType,
     receivePortOptionType,
+    startReceiveReturnType,
+    devicePortType, 
 }
