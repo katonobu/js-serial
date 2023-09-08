@@ -25,17 +25,15 @@ export type openOptionType = {
 }
 
 export type receivePortOptionType = {
-    updateRx:(arg0: Uint8Array)=>boolean;
+    updateRx:(arg0: Uint8Array)=>boolean
+    recoverableErrorCountMax?:number
     bufferSize?: number
 }
 
 export type startReceiveReturnType = 
     "Close" |
     "Stop" |
-    "UsbDetached" |
-    "InvalidId" |
-    "NotOpen" |
-    "AlreadyStartReceive"
+    "UsbDetached"
 
 export class MicroStore<T> {
     private obj: T;

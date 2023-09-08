@@ -1,4 +1,5 @@
 import JsSerialWeb from '../../lib/index'
+import webSerailPortTest from '../../lib/WebSerialPortTest'
 const jsw = new JsSerialWeb()
 
 const logTransaction = (action:string, request:object, response:object, isError=false) => {
@@ -14,6 +15,22 @@ const logTransaction = (action:string, request:object, response:object, isError=
 const logEvent = (action:string, payload:object) => {
   const eventObj:{action:string, payload:object} = {action, payload}
   console.log("Event:" + JSON.stringify(eventObj))
+}
+
+const runTestButtonEle = document.querySelector<HTMLButtonElement>('#run_test')!
+runTestButtonEle.onclick = async () => {
+  const ports = await navigator.serial.getPorts()
+  if (0 < ports.length) {
+    const results = await webSerailPortTest(ports[ports.length-1])
+    const resultCount = results.reduce((prev, curr)=>({okCount:prev.okCount+curr.okCount,ngCount:prev.ngCount+curr.ngCount}), {okCount:0, ngCount:0})
+    if (resultCount.ngCount === 0) {
+      logTransaction("run_test",{},{total:resultCount, result:results})
+    } else {
+      logTransaction("run_test",{},{total:resultCount, result:results}, true)
+    }
+  } else {
+    logTransaction("run_test",{},{reason:'No available port'}, true)
+  }
 }
 
 const initEle = document.querySelector<HTMLButtonElement>('#init')!
