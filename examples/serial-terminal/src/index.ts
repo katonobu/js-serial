@@ -286,7 +286,9 @@ async function connectToPort(): Promise<void> {
         if (unsubscribe) {
           unsubscribe();
         }
-        markDisconnected();
+        if (portId !== undefined){
+          markDisconnected();
+        }
       });
 }
 
@@ -299,11 +301,9 @@ async function disconnectFromPort(): Promise<void> {
   const localPort = portId;
   portId = undefined;
 
-  if (localPort) {
+  if (localPort !== undefined) {
     try {
-      if (localPort !== undefined) {
-        jsw?.closePort(localPort);
-      }
+      jsw?.closePort(localPort);
     } catch (e) {
       console.error(e);
       if (e instanceof Error) {
