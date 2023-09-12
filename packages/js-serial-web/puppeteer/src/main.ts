@@ -21,12 +21,16 @@ const runTestButtonEle = document.querySelector<HTMLButtonElement>('#run_test')!
 runTestButtonEle.onclick = async () => {
   const ports = await navigator.serial.getPorts()
   if (0 < ports.length) {
-    const results = await webSerailPortTest(ports[ports.length-1])
-    const resultCount = results.reduce((prev, curr)=>({okCount:prev.okCount+curr.okCount,ngCount:prev.ngCount+curr.ngCount}), {okCount:0, ngCount:0})
-    if (resultCount.ngCount === 0) {
-      logTransaction("run_test",{},{total:resultCount, result:results})
-    } else {
-      logTransaction("run_test",{},{total:resultCount, result:results}, true)
+    try{
+      const results = await webSerailPortTest(ports[ports.length-1])
+      const resultCount = results.reduce((prev, curr)=>({okCount:prev.okCount+curr.okCount,ngCount:prev.ngCount+curr.ngCount}), {okCount:0, ngCount:0})
+      if (resultCount.ngCount === 0) {
+        logTransaction("run_test",{},{total:resultCount, result:results})
+      } else {
+        logTransaction("run_test",{},{total:resultCount, result:results}, true)
+      }
+    } catch(e) {
+      console.log(e)
     }
   } else {
     logTransaction("run_test",{},{reason:'No available port'}, true)
