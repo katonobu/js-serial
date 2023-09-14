@@ -1,7 +1,7 @@
 import {
     receivePortOptionType,
     startReceiveReturnType
-} from "../../js-serial-core/lib/AbstractSerial";
+} from "./AbstractSerial";
 
 export default class WebSerailPort {
     private readonly _port:SerialPort
@@ -246,6 +246,10 @@ export default class WebSerailPort {
     ):Promise<string> => {
         let retStr:string = "OK"
         const port = this._port
+        const { 
+            updateOpenStt,
+        } = option
+
         if (!port) {
             throw new Error("Invalid Id is specified to sendPort()")
         } else if (!port.writable) {
@@ -283,13 +287,15 @@ export default class WebSerailPort {
                     this._writer = undefined
                 }
             }
-            if (this._reader === undefined && usbDisconnected) {
-                try {
-                    await this.closePort()
-//                    updateOpenStt(false)
-                } catch (e) {
-                    throw e
+            if (usbDisconnected) {
+                if (this._reader === undefined) {
+                    try {
+                        await this.closePort()
+                    } catch (e) {
+                        throw e
+                    }
                 }
+                updateOpenStt(false)
             }
         }
         return retStr
@@ -313,3 +319,4 @@ export default class WebSerailPort {
         return "OK"
     }
 }
+
