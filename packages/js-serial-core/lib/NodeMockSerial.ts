@@ -1,12 +1,12 @@
 import { SerialPortMock } from 'serialport'
 import { MockBinding } from '@serialport/binding-mock'
+import { JsSerialBase } from '../../js-serial-web/lib/BaseSerial'
 import {
-    JsSerialBase, 
     AbstractSerial,
     startReceiveReturnType,
     devicePortType, 
     receivePortOptionType    
-} from './index'
+} from '../../js-serial-web/lib/AbstractSerial'
 
 export class NodeMockSerial extends AbstractSerial{
     private static portCount = 0
