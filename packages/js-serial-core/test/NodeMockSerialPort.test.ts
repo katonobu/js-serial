@@ -1,4 +1,4 @@
-import { NodeMockSerial } from '../NodeMockSerial'
+import { NodeMockSerial } from '../lib/NodeMockSerial'
 
 describe("NodeMockSerial", () => {
     it("getDeviceKeyPortInfos", async () => {
@@ -6,6 +6,7 @@ describe("NodeMockSerial", () => {
         const ns = new NodeMockSerial()
         expect(ns).toBeInstanceOf(NodeMockSerial)
         const dkpis = await ns.getDeviceKeyPortInfos()
+        expect(dkpis.length).toBe(2)
 //        console.log(dkpis)
         dkpis.forEach((dkpi)=>{
             expect(dkpi.key).toBe(dkpi.info.portName)
