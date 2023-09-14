@@ -35,7 +35,7 @@ module.exports = {
 ```
 describe("Sample", () => {
   beforeAll(async () => {
-    await page.goto("http://localhost:5173/");
+    await page.goto("http://localhost:5174/");
   });
   afterAll(async () => {
   });

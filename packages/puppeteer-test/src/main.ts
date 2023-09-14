@@ -1,5 +1,4 @@
-import JsSerialWeb from '../../lib/index'
-import webSerailPortTest from '../../lib/tests/WebSerialPortTest'
+import JsSerialWeb from '../../js-serial-web/lib/index'
 const jsw = new JsSerialWeb()
 
 const logTransaction = (action:string, request:object, response:object, isError=false) => {

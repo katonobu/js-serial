@@ -1,4 +1,6 @@
 const {getPortsNum, clickAndWait, deleteAll} = require('./util/common.js')
+const devServerPort = 5177
+
 
 const openningMessage = [
     "OpenClose",
@@ -12,7 +14,7 @@ test('dummy', () => {
 */
 describe("OpenClose", () => {
     beforeAll(async () => {
-        const url = 'http://localhost:5173/'
+        const url = `http://localhost:${devServerPort.toString(10)}/`
     //    const url = 'http://127.0.0.1:8080'
         await Promise.all([
             page.goto(url),

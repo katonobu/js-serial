@@ -1,6 +1,10 @@
+const devServerPort = 5177
+
 describe("Sample", () => {
   beforeAll(async () => {
-    await page.goto("http://localhost:5173/");
+    const url = `http://localhost:${devServerPort.toString(10)}/`
+    console.log(url)
+    await page.goto(url)
   });
   afterAll(async () => {
   });
