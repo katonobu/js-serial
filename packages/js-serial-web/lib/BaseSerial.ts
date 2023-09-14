@@ -98,8 +98,21 @@ export class JsSerialBase{
             const matched:deviceKeyPortInfoAvailableType|undefined = this._idToObj.find((obj)=>obj.key===newPort)
             return matched?.info ?? {id:-1, pid:-1, vid:-1}
         }catch(e) {
-            console.log(e)
-            return {id:-1, pid:-1, vid:-1}
+            if (e instanceof TypeError) {
+                throw e
+            } else if (e instanceof DOMException) {
+                if (e.name === "NotFoundError") {
+                    // user cancel
+                    return {id:-1, pid:-1, vid:-1}
+                } else if (e.name === 'SecurityError') {
+                    // not user gesture
+                } else {
+                    // unknown
+                }
+                throw e
+            } else {
+                throw e
+            }
         }
     }
     async deletePort(id:portIdType):Promise<portInfoType> {
@@ -281,8 +294,6 @@ export class JsSerialBase{
                     // deleteとマークされたのにすでにdelete済
                 }
             })
-            /*ToDo*/
-            // port削除処理(callbackの無効化関数への置き換え等)
             detachedIds.forEach((id)=> this._openCloseSttStore[id].update(false))
         }
         // update related variables from idToObj

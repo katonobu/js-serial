@@ -24,6 +24,13 @@ export type openOptionType = {
     baudRate:number
 }
 
+export type initOptionType = {
+    pollingIntervalMs?: number,
+    portManager?:{
+        updateRequest:()=>Promise<void>
+    }
+}
+
 export type receivePortOptionType = {
     updateRx:(arg0: Uint8Array)=>boolean
     updateOpenStt:(arg0: boolean)=>void
@@ -34,6 +41,11 @@ export type receivePortOptionType = {
 export type startReceiveReturnType = 
     "Close" |
     "Stop" |
+    "UsbDetached"
+
+export type sendPortReturnType = 
+    "OK" |
+    "Close" |
     "UsbDetached"
 
 export class MicroStore<T> {
@@ -65,7 +77,7 @@ export class MicroStore<T> {
     }
 }
 
-type InitFunction = (opt:object) => Promise<void>
+type InitFunction = (option:initOptionType) => Promise<void>
 type GetDeviceKeyPortInfosFunction = () => Promise<deviceKeyPortInfoType[]>
 type PromptGrantAccessFunction = (option:object/*createOption*/)=>Promise<devicePortType>
 type CreatePortFunction = (path:string)=>devicePortType
@@ -73,7 +85,7 @@ type DeletePortFunction = (devicePort:deviceKeyPortInfoAvailableType)=>Promise<p
 type OpenPortFunction = (devicePort:devicePortType, option:openOptionType)=>Promise<string>
 type StartReceivePortFunction = (deviePort:devicePortType, option:receivePortOptionType)=>Promise<startReceiveReturnType>
 type StopReceivePortFunction = (deviePort:devicePortType)=>Promise<string>
-type SendPortFunction = (deviePort:devicePortType, msg: Uint8Array, option:object)=>Promise<string>
+type SendPortFunction = (deviePort:devicePortType, msg: Uint8Array, option:object)=>Promise<sendPortReturnType>
 type ClosePortFunction = (devicePort:devicePortType)=>Promise<string>
 type FinalizeFunction = (opt:object) => Promise<void>
 

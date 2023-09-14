@@ -4,14 +4,15 @@ import {
     devicePortType,
     deviceKeyPortInfoType,
     deviceKeyPortInfoAvailableType,
+    initOptionType,    
     openOptionType,
     receivePortOptionType,
-    startReceiveReturnType
+    startReceiveReturnType,
+    sendPortReturnType
 } from "./AbstractSerial";
 import WebSerailPort from "./WebSerialPort";
-import {JsSerialBase} from './BaseSerial'
 
-class WebSerial extends AbstractSerial{
+export default class WebSerial extends AbstractSerial{
     // https://ja.stackoverflow.com/questions/2046/javascript%E5%AE%9F%E8%A1%8C%E7%92%B0%E5%A2%83%E3%81%AE%E5%88%A4%E5%AE%9A%E6%96%B9%E6%B3%95%E3%81%AB%E3%81%A4%E3%81%84%E3%81%A6
     // @ts-ignore
     private static isNode:boolean = (typeof process !== "undefined" && typeof require !== "undefined")
@@ -21,18 +22,25 @@ class WebSerial extends AbstractSerial{
         super();
     }
 
-    init = async (opt:object):Promise<void> => {
-        const option = opt as {portManager:{updateRequest:()=>Promise<void>}}
+    init = async (option:initOptionType):Promise<void> => {
         if (WebSerial.isNode) {
             throw(new Error("js-serial-web exected in node environment"))
         } else {
             if (this.callUpdateRequest !== undefined){
                 throw(new Error("Already Initialized WebSerial, but init() is called again."))
             } else {
-                this.callUpdateRequest = () => option.portManager.updateRequest()
-                navigator.serial.addEventListener('connect', this.callUpdateRequest)
-                navigator.serial.addEventListener('disconnect', this.callUpdateRequest)
+                const updateRequest = option?.portManager?.updateRequest
+                if (updateRequest) {
+                    // this.callUpdateRequest = () => updateRequest() だと、callback時うまくthisが伝わらない
+                    this.callUpdateRequest = () => option?.portManager?.updateRequest()
+                    navigator.serial.addEventListener('connect', this.callUpdateRequest)
+                    navigator.serial.addEventListener('disconnect', this.callUpdateRequest)
+                } else {
+                    // ToDoここ未テスト
+                    throw(new Error("updateRequest dosen't exist in option.portManager"))
+                }
             }
+            return Promise.resolve()
         }
     }
 
@@ -40,6 +48,7 @@ class WebSerial extends AbstractSerial{
         if (WebSerial.isNode) {
             throw(new Error("js-serial-web exected in node environment"))
         } else {
+            /// 3.2.2 not allowed to use the policy-controlled feature =>"SecurityError" DOMException
             const currentPorts = await navigator.serial.getPorts()
             const result = currentPorts.map((port)=>{
                 const portInfo = port.getInfo()
@@ -62,6 +71,10 @@ class WebSerial extends AbstractSerial{
             throw(new Error("js-serial-web exected in node environment"))
         } else {
             const requestOption = opt as SerialPortRequestOptions
+            /// 3.1.2 not allowed to use the policy-controlled feature =>"SecurityError" DOMException
+            /// 3.1.3 does not have transient activation =>"SecurityError" DOMException
+            /// 3.1.4 filter["usbVendorId"] is not present => TypeError 
+            /// 3.1.5.5 user does not choose a port =>"NotFoundError" DOMException
             return navigator.serial.requestPort(requestOption)
         }
     }
@@ -106,7 +119,7 @@ class WebSerial extends AbstractSerial{
         msg:Uint8Array,
         // @ts-ignore
         option:any
-    ):Promise<string> => {
+    ):Promise<sendPortReturnType> => {
         if (WebSerial.isNode) {
             throw(new Error("js-serial-web exected in node environment"))
         } else {
@@ -136,11 +149,3 @@ class WebSerial extends AbstractSerial{
         }
     }
 }
-
-export default class JsSerialWeb extends JsSerialBase{
-    constructor(){
-        const wsp = new WebSerial()
-        super(wsp)
-    }
-}
-

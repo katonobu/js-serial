@@ -8,7 +8,7 @@ const config = {
   // A preset that is used as a base for Jest's configuration
   // preset: undefined,
   "preset": "jest-puppeteer",
-  setupFiles: ['./jest.setup.cjs'],  
+//  setupFiles: ['./jest.setup.cjs'],  
 };
 
 module.exports = config;

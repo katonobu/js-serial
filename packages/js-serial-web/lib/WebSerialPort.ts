@@ -1,6 +1,7 @@
 import {
     receivePortOptionType,
-    startReceiveReturnType
+    startReceiveReturnType,
+    sendPortReturnType
 } from "./AbstractSerial";
 
 export default class WebSerailPort {
@@ -243,8 +244,8 @@ export default class WebSerailPort {
         msg:Uint8Array,
         // @ts-ignore
         option:any
-    ):Promise<string> => {
-        let retStr:string = "OK"
+    ):Promise<sendPortReturnType> => {
+        let retStr:sendPortReturnType = "OK"
         const port = this._port
         const { 
             updateOpenStt,
@@ -277,7 +278,11 @@ export default class WebSerailPort {
                 } else if (typeof e === 'string') {
                     // e is reason of this._write.abort(reason)
                     // maybe "Close"
-                    retStr = e
+                    if (e === "Close") {
+                        retStr = "Close"
+                    } else {
+                        throw e
+                    }
                 } else {
                     throw e
                 }

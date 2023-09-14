@@ -11,8 +11,7 @@ const requestDetachUsb = async()=>{
         vitestUiEle.style.height="90vh"
 
         messagePre = document.createElement('pre')
-        messagePre.textContent = 'Detach USB!'
-        messagePre.id = 'detach-usb-request'
+        messagePre.textContent = '  -- Detach USB! -- '
         vitestUiEle.before(messagePre)
     }
     while(0 < ports.length){
@@ -25,7 +24,8 @@ const requestDetachUsb = async()=>{
     vitestUiEle.style.height=orgHeight
 }
 
-const getPort = async ()=>{
+const getPort = async (message:string = "")=>{
+    let messagePre:HTMLPreElement | undefined
     let button:HTMLButtonElement | undefined
     let ports = await navigator.serial.getPorts()
     const vitestUiEle = document.getElementById('vitest-ui')!
@@ -38,6 +38,11 @@ const getPort = async ()=>{
         button.onclick = ()=>navigator.serial.requestPort({})
         button.id = 'request-port'
         vitestUiEle.before(button)
+        if (message) {
+            messagePre = document.createElement('pre')
+            messagePre.textContent = message
+            vitestUiEle.before(messagePre)
+        }
     }
     while(ports.length === 0){
         await new Promise((resolve)=>setTimeout(resolve, 300))
@@ -45,6 +50,9 @@ const getPort = async ()=>{
     }
     if (button) {
         document.body.removeChild(button)
+    }
+    if (messagePre) {
+        document.body.removeChild(messagePre)
     }
     vitestUiEle.style.height=orgHeight
 
@@ -218,7 +226,7 @@ describe.sequential('readPort success', async () => {
         expect(await receivePromise).toBe('Close')
     })
     it('at last open/close successfully', async()=>{
-        const port = await getPort()
+        const port = await getPort('  -- Attach USB! (and add port if needed) -- ')
         const vwsp = new WebSerailPort(port)
         expect(await vwsp.openPort(validPortOption)).toBe('OK')
         expect(await vwsp.closePort()).toBe('OK')
@@ -256,7 +264,7 @@ describe.sequential('writePort', async () => {
         expect(await vwsp.closePort()).toBe('OK')
     })
     it('at last open/close successfully', async()=>{
-        const port = await getPort()
+        const port = await getPort('  -- Attach USB! (and add port if needed) -- ')
         const vwsp = new WebSerailPort(port)
         expect(await vwsp.openPort(validPortOption)).toBe('OK')
         expect(await vwsp.closePort()).toBe('OK')
@@ -282,7 +290,7 @@ describe.sequential('USB attach/detach', async () => {
         await expect(() => vwsp.closePort()).rejects.toThrowError(/close/)
     }, 30 * 1000)
     it('check environment recovery', async()=>{
-        port = await getPort()
+        port = await getPort('  -- Attach USB! (and add port if needed) -- ')
         vwsp = new WebSerailPort(port)
         expect(await vwsp.openPort(validPortOption)).toBe('OK')
         expect(await vwsp.closePort()).toBe('OK')
@@ -300,7 +308,7 @@ describe.sequential('USB attach/detach', async () => {
         await expect(() => vwsp.closePort()).rejects.toThrowError(/close/)
     }, 30 * 1000)
     it('check environment recovery', async()=>{
-        port = await getPort()
+        port = await getPort('  -- Attach USB! (and add port if needed) -- ')
         vwsp = new WebSerailPort(port)
         expect(await vwsp.openPort(validPortOption)).toBe('OK')
         expect(await vwsp.closePort()).toBe('OK')
@@ -323,7 +331,7 @@ describe.sequential('USB attach/detach', async () => {
         await expect(() => vwsp.closePort()).rejects.toThrowError(/close/)
     }, 30 * 1000)
     it('check environment recovery', async()=>{
-        port = await getPort()
+        port = await getPort('  -- Attach USB! (and add port if needed) -- ')
         vwsp = new WebSerailPort(port)
         expect(await vwsp.openPort(validPortOption)).toBe('OK')
         expect(await vwsp.closePort()).toBe('OK')
