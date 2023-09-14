@@ -1,14 +1,12 @@
-import { dirname, resolve } from 'node:path'
+import { dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { defineConfig as vitestDefineConfig} from 'vitest/config'
-import { defineConfig as viteDefineConfig} from 'vite'
-import path from 'path'
+import { defineConfig } from 'vitest/config'
 
 const dir = dirname(fileURLToPath(import.meta.url))
 
 function noop() {}
 
-export default vitestDefineConfig({
+export default defineConfig({
   test: {
     include: ['test/**.test.{ts,js}'],
     browser: {
