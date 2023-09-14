@@ -18,7 +18,7 @@ import {Terminal} from 'xterm';
 import {FitAddon} from 'xterm-addon-fit';
 import {WebLinksAddon} from 'xterm-addon-web-links';
 import 'xterm/css/xterm.css';
-import JsSerialWeb from '../../../packages/js-serial-web/lib/index';
+import JsSerialWeb from 'js-serial-web';
 
 /**
  * Elements of the port selection dropdown extend HTMLOptionElement so that

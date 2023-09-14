@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "@types/w3c-web-serial": "^1.0.3",
-    "web-serial-polyfill": "^1.0.14",
+    "js-serial-web": "file:../../packages/js-serial-web",
     "xterm": "^5.2.1",
     "xterm-addon-fit": "^0.7.0",
     "xterm-addon-web-links": "^0.8.0"

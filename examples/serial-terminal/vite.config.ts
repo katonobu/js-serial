@@ -2,6 +2,8 @@
 import { VitePWA } from 'vite-plugin-pwa'
 import webmanifest from './src/manifest.json';
 
+const devServerPort = 5178
+
 export default {
   base: './',
   plugins: [
@@ -11,5 +13,10 @@ export default {
       injectRegister: 'auto',
       manifest: webmanifest,
     })
-  ]
+  ],
+  server:{
+    port:devServerPort,
+    strictPort:true,
+    open:true
+  }
 }
