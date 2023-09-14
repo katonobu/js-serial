@@ -1,4 +1,4 @@
-import JsSerialNode from '../index'
+import JsSerialNode from '../src/index'
 
 describe("AbstractSerial", () => {
     it("PortManager instance", async () => {

@@ -3,8 +3,9 @@ import {
     startReceiveReturnType,
     devicePortType, 
     receivePortOptionType    
-} from "../../js-serial-core/lib/index"
+} from "../../js-serial-web/lib/AbstractSerial"
 import { SerialPort} from 'serialport'
+import {JsSerialBase} from '../../js-serial-web/lib/BaseSerial'
 
 export class NodeSerial extends AbstractSerial{
     private static intervalId:NodeJS.Timeout | undefined
@@ -81,5 +82,12 @@ export class NodeSerial extends AbstractSerial{
             NodeSerial.intervalId = undefined
             NodeSerial.portManager = undefined
         }
+    }
+}
+
+export default class JsSerialNode extends JsSerialBase{
+    constructor(){  
+        const nsp = new NodeSerial()
+        super(nsp)
     }
 }

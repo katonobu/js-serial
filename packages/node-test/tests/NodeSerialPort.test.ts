@@ -1,4 +1,4 @@
-import { NodeSerial } from '../NodeSerial'
+import { NodeSerial } from '../src/NodeSerial'
 
 describe("NodeSerial", () => {
     it("getDeviceKeyPortInfos", async () => {
