@@ -90,6 +90,7 @@ out
 # Nuxt.js build / generate output
 .nuxt
 dist
+types
 
 # Gatsby files
 .cache/
@@ -131,3 +132,6 @@ dist
 
 # Winmerge
 *.bak
+
+# site specific
+packages/js-serial-web/browser.json
