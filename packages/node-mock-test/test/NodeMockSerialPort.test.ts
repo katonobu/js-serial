@@ -1,4 +1,4 @@
-import { NodeMockSerial } from '../lib/NodeMockSerial'
+import { NodeMockSerial } from '../src/NodeMockSerial'
 
 describe("NodeMockSerial", () => {
     it("getDeviceKeyPortInfos", async () => {

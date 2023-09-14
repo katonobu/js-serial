@@ -1,5 +1,5 @@
 {
-    "name": "js-serial-core",
+    "name": "node-mock-test",
     "license": "UNLICENSED",
     "scripts": {
         "test-watch": "jest --runInBand --watchAll",

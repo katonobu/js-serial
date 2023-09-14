@@ -1,6 +1,6 @@
-import { NodeMockSerial } from '../lib/NodeMockSerial'
+import { NodeMockSerial } from '../src/NodeMockSerial'
 import { JsSerialBase } from '../../js-serial-web/lib/BaseSerial';
-import JsSerialNodeMock from '../lib/NodeMockSerial'
+import JsSerialNodeMock from '../src/NodeMockSerial'
 
 describe("AbstractSerial", () => {
     it("PortManager instance", async () => {
