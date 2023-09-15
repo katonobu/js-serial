@@ -1,6 +1,6 @@
 import { 
     portIdType, 
-    portInfoType, 
+    portStoreCurrentType,
     compareKeyType, 
     openOptionType,
     deviceKeyPortInfoAvailableType,    
@@ -27,16 +27,11 @@ interface rxLinesType {
     total:number;
 }
 
-interface portStoreCurrentType extends portInfoType{
-    available:boolean;
-}
-
-
 interface portStoreType{
     curr:portStoreCurrentType[];
     attached:portIdType[];
     detached:portIdType[];
-    changeId:portIdType
+    changeId:number
 }
 
 export type AbstractDataHandlerFunction = (data:Uint8Array)=>any[]
@@ -118,19 +113,23 @@ export class JsSerialBase{
      *     vidしか指定しなかった場合TypeErrorをthrowします。
      * @todo 既存デバイス選択時とキャンセルした時を分けるか?
      */
-    async promptGrantAccess(option:any/*createOption*/ = {}):Promise<portInfoType> {
+    async promptGrantAccess(option:any/*createOption*/ = {}):Promise<portStoreCurrentType> {
         try {
             const newPort = await this._serial.promptGrantAccess(option)
             await this.updateRequest()
             const matched:deviceKeyPortInfoAvailableType|undefined = this._idToObj.find((obj)=>obj.key===newPort)
-            return matched?.info ?? {id:-1, pid:-1, vid:-1}
+            if (matched) {
+                return {...matched.info, available:matched.available}
+            } else {
+                return {id:-1, pid:-1, vid:-1, available:false}
+            }
         }catch(e) {
             if (e instanceof TypeError) {
                 throw e
             } else if (e instanceof DOMException) {
                 if (e.name === "NotFoundError") {
                     // user cancel
-                    return {id:-1, pid:-1, vid:-1}
+                    return {id:-1, pid:-1, vid:-1, available:false}
                 } else if (e.name === 'SecurityError') {
                     // not user gesture
                 } else {
@@ -147,14 +146,14 @@ export class JsSerialBase{
      * @param id getPorts()で得られるポートのidを指定します。
      * @returns 取り消したポートのid,pid,vidを返します。異常発生時はid=pid=vid=-1を返します。
      */
-    async deletePort(id:portIdType):Promise<portInfoType> {
+    async deletePort(id:portIdType):Promise<portStoreCurrentType> {
         try {
             const ret = await this._serial.deletePort(this._idToObj[id])
             await this.updateRequest()
             return ret
         } catch (e) {
             console.log(e)
-            return {id:-1, pid:-1, vid:-1}
+            return {id:-1, pid:-1, vid:-1, available:false}
         }
     }
     /**

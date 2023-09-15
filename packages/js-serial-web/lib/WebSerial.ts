@@ -1,6 +1,6 @@
 import {
     AbstractSerial,
-    portInfoType,
+    portStoreCurrentType,
     devicePortType,
     deviceKeyPortInfoType,
     deviceKeyPortInfoAvailableType,
@@ -15,7 +15,7 @@ import WebSerailPort from "./WebSerialPort";
 export default class WebSerial extends AbstractSerial{
     // https://ja.stackoverflow.com/questions/2046/javascript%E5%AE%9F%E8%A1%8C%E7%92%B0%E5%A2%83%E3%81%AE%E5%88%A4%E5%AE%9A%E6%96%B9%E6%B3%95%E3%81%AB%E3%81%A4%E3%81%84%E3%81%A6
     // @ts-ignore
-    private static isNode:boolean = (typeof process !== "undefined" && typeof require !== "undefined")
+    private static isNode:boolean = false//(typeof process !== "undefined" && typeof require !== "undefined")
     private callUpdateRequest:(()=>void)|undefined
 
     constructor(){
@@ -81,13 +81,13 @@ export default class WebSerial extends AbstractSerial{
     createPort = (path:string):devicePortType=>{
         throw(new Error(`js-serial-web dosen't support createPort : ${path}`))
     }
-    deletePort = async (dp:deviceKeyPortInfoAvailableType):Promise<portInfoType> => {
+    deletePort = async (dp:deviceKeyPortInfoAvailableType):Promise<portStoreCurrentType> => {
         if (WebSerial.isNode) {
             throw(new Error("js-serial-web exected in node environment"))
         } else {
             const port = dp.port as WebSerailPort
             port.deletePort()
-            return dp.info
+            return {...dp.info, available:dp.available}
         }
     }
     openPort = async (dp:devicePortType, opt:openOptionType):Promise<string>=>{

@@ -20,6 +20,14 @@ export type deviceKeyPortInfoAvailableType = {
     available:boolean;
 }
 
+export type portStoreCurrentType = {
+    id:portIdType;
+    pid:number;
+    vid:number;
+    portName?:string;
+    available:boolean;
+}
+
 export type openOptionType = {
     baudRate:number
 }
@@ -81,7 +89,7 @@ type InitFunction = (option:initOptionType) => Promise<void>
 type GetDeviceKeyPortInfosFunction = () => Promise<deviceKeyPortInfoType[]>
 type PromptGrantAccessFunction = (option:object/*createOption*/)=>Promise<devicePortType>
 type CreatePortFunction = (path:string)=>devicePortType
-type DeletePortFunction = (devicePort:deviceKeyPortInfoAvailableType)=>Promise<portInfoType>
+type DeletePortFunction = (devicePort:deviceKeyPortInfoAvailableType)=>Promise<portStoreCurrentType>
 type OpenPortFunction = (devicePort:devicePortType, option:openOptionType)=>Promise<string>
 type StartReceivePortFunction = (deviePort:devicePortType, option:receivePortOptionType)=>Promise<startReceiveReturnType>
 type StopReceivePortFunction = (deviePort:devicePortType)=>Promise<string>
