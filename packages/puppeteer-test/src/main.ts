@@ -16,26 +16,6 @@ const logEvent = (action:string, payload:object) => {
   console.log("Event:" + JSON.stringify(eventObj))
 }
 
-const runTestButtonEle = document.querySelector<HTMLButtonElement>('#run_test')!
-runTestButtonEle.onclick = async () => {
-  const ports = await navigator.serial.getPorts()
-  if (0 < ports.length) {
-    try{
-      const results = await webSerailPortTest(ports[ports.length-1])
-      const resultCount = results.reduce((prev, curr)=>({okCount:prev.okCount+curr.okCount,ngCount:prev.ngCount+curr.ngCount}), {okCount:0, ngCount:0})
-      if (resultCount.ngCount === 0) {
-        logTransaction("run_test",{},{total:resultCount, result:results})
-      } else {
-        logTransaction("run_test",{},{total:resultCount, result:results}, true)
-      }
-    } catch(e) {
-      console.log(e)
-    }
-  } else {
-    logTransaction("run_test",{},{reason:'No available port'}, true)
-  }
-}
-
 const initEle = document.querySelector<HTMLButtonElement>('#init')!
 initEle.onclick = ()=>{
   Promise.resolve(jsw.init({}))
@@ -249,8 +229,9 @@ jsw.subscribePorts(()=>{
   .then((ports)=>{
     portslenResult.innerText = ports.curr.length.toString(10)
     portStoreResult.innerText = JSON.stringify(ports,null, 2)
-    if (0 < ports.curr.length) {
-      const maxPortId = ports.curr.length-1
+    const availablePorts = ports.curr.filter((port)=>port.available)
+    if (0 < availablePorts.length){
+      const maxPortId = availablePorts[availablePorts.length-1].id
       currentPortStrId.innerText = ports.curr[maxPortId].id.toString(10)
       unsubscribeOpenSttStore()
       unsubscribeOpenSttStore = jsw.subscribeOpenStt(maxPortId, ()=>{
@@ -275,12 +256,10 @@ jsw.subscribePorts(()=>{
       unsubscribeOpenSttStore = ()=>{}
       openSttStr.innerText = ' '
     }
-    console.log("portStoreSubscriber ->")
     logEvent('changePorts', ports)
   })
   .catch((e)=>{
     console.log(e)
-    console.log("portStoreSubscriber ->")
     logEvent('changePorts', {})
   })
 })
