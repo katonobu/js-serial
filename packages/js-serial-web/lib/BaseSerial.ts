@@ -27,8 +27,13 @@ interface rxLinesType {
     total:number;
 }
 
+interface portStoreCurrentType extends portInfoType{
+    available:boolean;
+}
+
+
 interface portStoreType{
-    curr:portInfoType[];
+    curr:portStoreCurrentType[];
     attached:portIdType[];
     detached:portIdType[];
     changeId:portIdType
@@ -73,6 +78,10 @@ export class JsSerialBase{
     private _rxDataHandler:AbstractDataHandler
     private _updateCount:number
 
+    /**
+     * JsSerialBaseクラスのコンストラクタ
+     * @param serial AbstructSerialクラスを基底クラスとするクラス(WebSerial)のインスタンス。
+     */
     constructor(
         serial:AbstractSerial,
     ){
@@ -87,10 +96,28 @@ export class JsSerialBase{
         this._updateCount = 0
     }
 
+    /**
+     * 初期化処理
+     * コンストラクタで与えられたクラスの初期化を行い、接続デバイスを検出後、接続デバイスデータの初期化を行います。
+     * @param opt pollingIntervalMsメンバでPlug&Play検出インターバルをms単位の数値で指定できますが、WebSerialでは参照されません。
+     */
     async init(opt:{pollingIntervalMs?:number} = {}):Promise<void> {
         await this._serial.init({portManager:this, pollingIntervalMs:opt?.pollingIntervalMs})
         await this.updateRequest()
     }
+
+    /**
+     * ユーザーに対してシリアルポートのアクセス要求ダイアログを表示させます。
+     * WebSerialで有効です。
+     * @param option フィルタさせたいpid,vidを指定します。
+     * @see https://developer.mozilla.org/en-US/docs/Web/API/Serial/requestPort#parameters
+     * @returns 新たにアクセス許可されたデバイスが追加された場合、そのデバイスのid,pid,vidを返します。
+     *     ユーザーがキャンセルした場合はthrowせず、id,vid,pidとも-1の値を返します。
+     *     ユーザーが既存デバイスを選択した場合、id,vid,pidとも-1の値を返します。
+     * @throws ユーザーアクション由来でこの関数が呼ばれていない場合DOMException.SecurityErrorをthrowします。
+     *     vidしか指定しなかった場合TypeErrorをthrowします。
+     * @todo 既存デバイス選択時とキャンセルした時を分けるか?
+     */
     async promptGrantAccess(option:any/*createOption*/ = {}):Promise<portInfoType> {
         try {
             const newPort = await this._serial.promptGrantAccess(option)
@@ -115,6 +142,11 @@ export class JsSerialBase{
             }
         }
     }
+    /**
+     * 引数で指定されたシリアルポートのアクセス許可を取り消します。
+     * @param id getPorts()で得られるポートのidを指定します。
+     * @returns 取り消したポートのid,pid,vidを返します。異常発生時はid=pid=vid=-1を返します。
+     */
     async deletePort(id:portIdType):Promise<portInfoType> {
         try {
             const ret = await this._serial.deletePort(this._idToObj[id])
@@ -125,6 +157,16 @@ export class JsSerialBase{
             return {id:-1, pid:-1, vid:-1}
         }
     }
+    /**
+     * 引数で指定されたシリアルポートをopenします。
+     * @param id getPorts()で得られるポートのidを指定します。
+     * @param option baudRate(必須),bufferSize,dataBits,flowControl,parity,stopBits を指定します。 
+     * @see https://developer.mozilla.org/en-US/docs/Web/API/SerialPort/open#parameters
+     * @returns openに成功した場合"OK"を返します。
+     * @throws すでにopenしているポートが指定された場合、DOMException.InvalidStateErrorをthrowします。
+     *     optionで指定した値が不適切な場合、TypeErrorをthrowします。
+     *     そのポートがほかのアプリケーションで使われていた場合、DOMException.NetworkErrorをthrowします。
+     */
     async openPort(id:portIdType, option:openOptionType = {baudRate:115200}):Promise<string> {
         try {
             const ret = await this._serial.openPort(this._idToObj[id].port, option)
@@ -222,7 +264,8 @@ export class JsSerialBase{
                 const matched:deviceKeyPortInfoAvailableType|undefined = this._idToObj.find((obj)=>obj.key===key)
 //                console.log(key, matched)
                 if (matched) {
-                    // ポート復活。(node時のみ)
+                    // ポート復活。
+                    /// delete(forget)後、USB抜き差しを挟まずに再度登録した場合ここを通る。
                     if (!matched.available) {
                         matched.available = true
                         const portKeyObjInfoFromKey = portKeyObjInfos.find((pkoi)=>pkoi.key===key)
@@ -237,6 +280,8 @@ export class JsSerialBase{
                     }
                 } else {
                     // ポート追加
+                    /// 同じデバイスであっても、USB抜き差し後の登録は新規登録扱いとなる。
+                    /// Windowsでは、登録されていたUSBの抜き差しで、自動追加されるが、その時は新規登録扱いとなる。
                     const newId = this._idToObj.length
                     const portObjInfoFromKey = portKeyObjInfos.find((port)=>port.key===key)
                     // console.log(portObjInfoFromKey, newId)
@@ -301,7 +346,7 @@ export class JsSerialBase{
             this._updateCount++
             this._currentKeysCache = this._idToObj.filter((obj)=>obj.available).map((obj)=>obj.key)
             this._portStore.update({
-                curr:this._idToObj.filter((obj)=>obj.available).map((obj)=>obj.info),
+                curr:this._idToObj.map((obj)=>({...obj.info, available:obj.available})),
                 attached:attachedIds,
                 detached:detachedIds,
                 changeId:this._updateCount

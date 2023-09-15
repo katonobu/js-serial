@@ -5,7 +5,7 @@ const devServerPort = 5177
 const openningMessage = [
     "PnpPortLen",
     "USB挿抜テストです。",
-    "挿抜対象のポートを登録して、キャンセルを押してください。",
+    "挿抜対象のポートを登録してください。",
 ]
 /*
 test('dummy', () => {
@@ -42,7 +42,7 @@ describe("PnpPortLen", () => {
         while(true) {
             const createObj = await clickAndWait(page, '#create',"create", 0)
             const currentPortsNum = await getPortsNum(page)
-            if (0 < currentPortsNum && createObj.rsp.id === -1){
+            if (0 < currentPortsNum){
                 break
             }
         }
@@ -62,7 +62,7 @@ describe("PnpPortLen", () => {
         let portChange = await getPorts(page)
         expect(0 < portChange.rsp.res.detached.length).toBe(true)
         expect(0 === portChange.rsp.res.attached.length).toBe(true)
-        const detachedPortLen = portChange.rsp.length
+        const detachedPortLen = portChange.rsp.res.curr.filter((port)=>port.available).length
         expect(detachedPortLen < initPortLen).toBe(true)
         await Promise.all([
             await page.evaluate((openningMessage) => {
@@ -77,7 +77,7 @@ describe("PnpPortLen", () => {
         portChange = await getPorts(page)
         expect(0 < portChange.rsp.res.attached.length).toBe(true)
         expect(0 === portChange.rsp.res.detached.length).toBe(true)
-        const attachedPortLen = portChange.rsp.length
+        const attachedPortLen = portChange.rsp.res.curr.filter((port)=>port.available).length
         expect(detachedPortLen < attachedPortLen).toBe(true)
         // 1つずつ増えるので、次の行はすぐには成り立たない。
         // expect(initPortLen).toBe(attachedPortLen)

@@ -41,8 +41,8 @@ const getPorts = async(page) => {
 
 const getPortsNum = async(page) => {
     const cw = await getPorts(page)
-//    console.log(cw)
-    return cw.rsp.length
+    const availables = cw.rsp.res.curr.filter((port)=>port.available)
+    return availables.length
 }
 
 const waitEventWithTimeout = async (page, expStr, timeoutMs=0) => {

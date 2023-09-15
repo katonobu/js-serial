@@ -162,6 +162,7 @@ describe("AbstractSerial", () => {
             mockCallbackMayCalledInit.mockImplementation(()=>{
                 const ports = jsnm.getPorts()
                 expect(ports.curr.length).toBe(2)
+                expect(ports.curr.filter((port)=>port.available).length).toBe(2)
                 expect(ports.attached.length).toBe(2)
                 expect(ports.attached[0]).toBe(0)
                 expect(ports.attached[1]).toBe(1)
@@ -191,7 +192,8 @@ describe("AbstractSerial", () => {
                 mockCallbackMayCalledOnce.mockImplementation(()=>{
                     const ports = jsnm.getPorts()
 //                    console.log("called ", JSON.stringify(ports))
-                    expect(ports.curr.length).toBe(0)
+                    expect(ports.curr.length).toBe(2)
+                    expect(ports.curr.filter((port)=>port.available).length).toBe(0)
                     expect(ports.attached.length).toBe(0)
                     expect(ports.detached.length).toBe(2)
                     expect(ports.detached[0]).toBe(0)
