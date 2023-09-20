@@ -135,3 +135,4 @@ types
 
 # site specific
 packages/js-serial-web/browser.json
+.npmrc

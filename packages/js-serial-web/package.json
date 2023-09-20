@@ -1,6 +1,6 @@
 {
-  "name": "js-serial-web",
-  "version": "0.0.1",
+  "name": "@katonobu/js-serial-web",
+  "version": "0.0.2",
   "main": "./dist/js-serial-web.umd.js",
   "module": "./dist/js-serial-web.es.js",
   "exports": {
@@ -30,5 +30,12 @@
     "vite": "^2.6.4",
     "vitest": "^0.34.4",
     "webdriverio": "^8.16.6"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/katonobu/js-serial.git"
+  },
+	"publishConfig": {
+		"registry": "https://npm.pkg.github.com"
+	}  
 }
