@@ -26,6 +26,7 @@ export type portStoreCurrentType = {
     pid:number;
     vid:number;
     portName?:string;
+    reason:string;
     available:boolean;
 }
 

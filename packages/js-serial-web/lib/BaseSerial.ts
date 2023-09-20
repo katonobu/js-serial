@@ -122,7 +122,7 @@ export class JsSerialBase{
             if (matched) {
                 return {...matched.info, available:matched.available}
             } else {
-                return {id:-1, pid:-1, vid:-1, available:false}
+                return {id:-1, pid:-1, vid:-1, available:false, reason:'GrantReq'}
             }
         }catch(e) {
             if (e instanceof TypeError) {
@@ -130,7 +130,7 @@ export class JsSerialBase{
             } else if (e instanceof DOMException) {
                 if (e.name === "NotFoundError") {
                     // user cancel
-                    return {id:-1, pid:-1, vid:-1, available:false}
+                    return {id:-1, pid:-1, vid:-1, available:false, reason:'GrantReq'}
                 } else if (e.name === 'SecurityError') {
                     // not user gesture
                 } else {
@@ -154,7 +154,7 @@ export class JsSerialBase{
             return ret
         } catch (e) {
             console.log(e)
-            return {id:-1, pid:-1, vid:-1, available:false}
+            return {id:-1, pid:-1, vid:-1, available:false, reason:"Deleted"}
         }
     }
     /**
