@@ -3,7 +3,8 @@ export type portInfoType = {
     id:portIdType,
     pid:number,
     vid:number,
-    portName?:string
+    portName?:string,
+    reason:string
 }
 export type devicePortType = object /* SerialPort */
 export type compareKeyType = string | devicePortType
@@ -35,7 +36,7 @@ export type openOptionType = {
 export type initOptionType = {
     pollingIntervalMs?: number,
     portManager?:{
-        updateRequest:()=>Promise<void>
+        updateRequest:(reason:updateRequestReasonType)=>Promise<void>
     }
 }
 
@@ -55,6 +56,13 @@ export type sendPortReturnType =
     "OK" |
     "Close" |
     "UsbDetached"
+
+export type updateRequestReasonType = 
+    "Init" |
+    "GrantReq" |
+    "USB Attached" |
+    "USB Detached" |
+    "Deleted"
 
 export class MicroStore<T> {
     private obj: T;

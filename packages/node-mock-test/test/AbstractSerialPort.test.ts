@@ -46,7 +46,7 @@ describe("AbstractSerial", () => {
         const jsnm = new JsSerialNodeMock()
         await jsnm.init({})
         
-        const update = jsnm.updateRequest()
+        const update = jsnm.updateRequest("Init")
         expect(update).toBeInstanceOf(Promise)
         expect(await update).toBe(undefined)
         await jsnm.finalize()
@@ -74,7 +74,7 @@ describe("AbstractSerial", () => {
         expect(mockCallbackMayCalledOnce).toHaveBeenCalledTimes(1);
 
         NodeMockSerial.addPort()
-        await jsnm.updateRequest()
+        await jsnm.updateRequest("Init")
         expect(mockCallbackMayCalledOnce).toHaveBeenCalledTimes(2);
 
         unsubscribe()
@@ -94,7 +94,7 @@ describe("AbstractSerial", () => {
         expect(mockCallbackMayCalledOnce).toHaveBeenCalledTimes(1);
 
         // NodeMockSerial.addPort() // don't add the port, this skips callback
-        await jsnm.updateRequest()
+        await jsnm.updateRequest("Init")
         expect(mockCallbackMayCalledOnce).toHaveBeenCalledTimes(1);
 
         unsubscribe()

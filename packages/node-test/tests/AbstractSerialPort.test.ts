@@ -44,7 +44,7 @@ describe("AbstractSerial", () => {
         const jsn = new JsSerialNode()
         await jsn.init({})
         
-        const update = jsn.updateRequest()
+        const update = jsn.updateRequest("Init")
         expect(update).toBeInstanceOf(Promise)
         expect(await update).toBe(undefined)
         await jsn.finalize()
@@ -93,7 +93,7 @@ describe("AbstractSerial", () => {
         // connected number of ports is same, so callback is called on updateRequest()
         const mockCallbackNotCalled = jest.fn();        
         unsubscribe = jsn.subscribePorts(mockCallbackNotCalled)
-        await jsn.updateRequest()
+        await jsn.updateRequest("Init")
         expect(mockCallbackNotCalled).toHaveBeenCalledTimes(0);
         unsubscribe()
         await jsn.finalize()

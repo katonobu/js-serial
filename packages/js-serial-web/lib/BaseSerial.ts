@@ -4,6 +4,7 @@ import {
     compareKeyType, 
     openOptionType,
     deviceKeyPortInfoAvailableType,    
+    updateRequestReasonType,
     MicroStore, 
     AbstractSerial,
 } from './AbstractSerial'
@@ -98,7 +99,7 @@ export class JsSerialBase{
      */
     async init(opt:{pollingIntervalMs?:number} = {}):Promise<void> {
         await this._serial.init({portManager:this, pollingIntervalMs:opt?.pollingIntervalMs})
-        await this.updateRequest()
+        await this.updateRequest("Init")
     }
 
     /**
@@ -116,7 +117,7 @@ export class JsSerialBase{
     async promptGrantAccess(option:any/*createOption*/ = {}):Promise<portStoreCurrentType> {
         try {
             const newPort = await this._serial.promptGrantAccess(option)
-            await this.updateRequest()
+            await this.updateRequest("GrantReq")
             const matched:deviceKeyPortInfoAvailableType|undefined = this._idToObj.find((obj)=>obj.key===newPort)
             if (matched) {
                 return {...matched.info, available:matched.available}
@@ -149,7 +150,7 @@ export class JsSerialBase{
     async deletePort(id:portIdType):Promise<portStoreCurrentType> {
         try {
             const ret = await this._serial.deletePort(this._idToObj[id])
-            await this.updateRequest()
+            await this.updateRequest("Deleted")
             return ret
         } catch (e) {
             console.log(e)
@@ -244,7 +245,7 @@ export class JsSerialBase{
         return this._serial.finalize({})
     }
 
-    async updateRequest():Promise<void>{
+    async updateRequest(reason:updateRequestReasonType):Promise<void>{
         const portKeyObjInfos = await this._serial.getDeviceKeyPortInfos()
 
         const latestKeys = portKeyObjInfos.map((pkoi)=>pkoi.key)
@@ -267,12 +268,17 @@ export class JsSerialBase{
                     /// delete(forget)後、USB抜き差しを挟まずに再度登録した場合ここを通る。
                     if (!matched.available) {
                         matched.available = true
+                        matched.info.reason = reason
                         const portKeyObjInfoFromKey = portKeyObjInfos.find((pkoi)=>pkoi.key===key)
-                        if (portKeyObjInfoFromKey && portKeyObjInfoFromKey.info.portName) {
-                            matched.port = this._serial.createPort(portKeyObjInfoFromKey.info.portName)
-                            attachedIds.push(matched.info.id)
+                        if (portKeyObjInfoFromKey){
+                            if (portKeyObjInfoFromKey.info.portName && portKeyObjInfoFromKey.info.portName !== "") {
+                                // node
+                                matched.port = this._serial.createPort(portKeyObjInfoFromKey.info.portName)
+                            } else {
+                                // web-serial
+                            }
                         } else {
-                            // キーに対応するポートがない or port名が設定されていない
+                            // キーに対応するポートがない
                         }
                     } else {
                         // 増えたはずなのにデータ有効
@@ -295,7 +301,8 @@ export class JsSerialBase{
                                     id:newId,
                                     pid:portObjInfoFromKey.info.pid, 
                                     vid:portObjInfoFromKey.info.vid, 
-                                    portName:portObjInfoFromKey.info.portName?? ""
+                                    portName:portObjInfoFromKey.info.portName?? "",
+                                    reason:reason
                                 }
                             })
                             attachedIds.push(newId)
@@ -309,7 +316,8 @@ export class JsSerialBase{
                                     id:newId,
                                     pid:portObjInfoFromKey.info.pid, 
                                     vid:portObjInfoFromKey.info.vid, 
-                                    portName:portObjInfoFromKey.info.portName?? ""
+                                    portName:portObjInfoFromKey.info.portName?? "",
+                                    reason:reason
                                 }
                             })
                             attachedIds.push(newId)
@@ -333,6 +341,7 @@ export class JsSerialBase{
                 const matched:deviceKeyPortInfoAvailableType|undefined = this._idToObj.find((obj)=>obj.key===key)
                 if (matched) {
                     matched.available = false
+                    matched.info.reason = reason
                     detachedIds.push(matched.info.id)
                 } else {
                     // deleteとマークされたのにすでにdelete済

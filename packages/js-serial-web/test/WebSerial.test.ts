@@ -1,4 +1,4 @@
-import { initOptionType } from "../lib/AbstractSerial";
+import { initOptionType, updateRequestReasonType } from "../lib/AbstractSerial";
 import WebSerail from "../lib/WebSerial";
 import { expect, it, describe, vi, beforeEach, beforeAll } from 'vitest'
 
@@ -7,7 +7,7 @@ describe.sequential('Init/finish', () => {
     let disconnectCallbackAdded:EventListenerOrEventListenerObject | null = null
     let conenctCallbackRemoved:EventListenerOrEventListenerObject  | null = null
     let disconnectCallbackRemoved:EventListenerOrEventListenerObject | null = null
-    const updateRequest = ()=>Promise.resolve()
+    const updateRequest = (reason:updateRequestReasonType)=>Promise.resolve()
     const validInitOption:initOptionType = {portManager:{updateRequest}, pollingIntervalMs:0}
 
     beforeEach(()=>{

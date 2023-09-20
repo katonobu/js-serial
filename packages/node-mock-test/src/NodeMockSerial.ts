@@ -5,13 +5,14 @@ import {
     AbstractSerial,
     startReceiveReturnType,
     devicePortType, 
-    receivePortOptionType    
+    receivePortOptionType,
+    updateRequestReasonType
 } from '../../js-serial-web/lib/AbstractSerial'
 
 export class NodeMockSerial extends AbstractSerial{
     private static portCount = 0
     private static intervalId:NodeJS.Timeout | undefined
-    private static portManager:{updateRequest:()=>Promise<void>} | undefined
+    private static portManager:{updateRequest:(reason:updateRequestReasonType)=>Promise<void>} | undefined
 
 
     static addPort = (vid:string ="0", pid:string="0"):string => {
@@ -34,7 +35,7 @@ export class NodeMockSerial extends AbstractSerial{
             NodeMockSerial.portManager = portManager
             NodeMockSerial.intervalId = setInterval(()=>{
                 if (NodeMockSerial.portManager) {
-                    NodeMockSerial.portManager?.updateRequest()
+                    NodeMockSerial.portManager?.updateRequest("Init")
                 }
             }, pollingIntervalMs)
         }

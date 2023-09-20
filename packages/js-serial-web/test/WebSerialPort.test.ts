@@ -273,7 +273,7 @@ describe.sequential('writePort', async () => {
 
 describe.sequential('USB attach/detach', async () => {
 //describe.skip('USB attach/detach', async () => {
-        let port = await getPort()
+    let port = await getPort()
     let vwsp = new WebSerailPort(port)
     it('success open/close', async ()=>{
         expect(await vwsp.openPort(validPortOption)).toBe('OK')

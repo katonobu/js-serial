@@ -2,14 +2,15 @@ import {
     AbstractSerial,
     startReceiveReturnType,
     devicePortType, 
-    receivePortOptionType    
+    receivePortOptionType,
+    updateRequestReasonType
 } from "../../js-serial-web/lib/AbstractSerial"
 import { SerialPort} from 'serialport'
 import {JsSerialBase} from '../../js-serial-web/lib/BaseSerial'
 
 export class NodeSerial extends AbstractSerial{
     private static intervalId:NodeJS.Timeout | undefined
-    private static portManager:{updateRequest:()=>Promise<void>} | undefined
+    private static portManager:{updateRequest:(reason:updateRequestReasonType)=>Promise<void>} | undefined
 
     constructor(){
         super();
@@ -17,11 +18,11 @@ export class NodeSerial extends AbstractSerial{
 
     init = async (opt:object) => {
         if (!NodeSerial.intervalId) {
-            const {pollingIntervalMs = 1000 * 5, portManager} = opt as {pollingIntervalMs?:number, portManager:{updateRequest:()=>Promise<void>}}
+            const {pollingIntervalMs = 1000 * 5, portManager} = opt as {pollingIntervalMs?:number, portManager:{updateRequest:(reason:updateRequestReasonType)=>Promise<void>}}
             NodeSerial.portManager = portManager
             NodeSerial.intervalId = setInterval(()=>{
                 if (NodeSerial.portManager) {
-                    NodeSerial.portManager?.updateRequest()
+                    NodeSerial.portManager?.updateRequest("Init")
                 }
             }, pollingIntervalMs)
         }

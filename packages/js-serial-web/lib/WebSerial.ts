@@ -16,7 +16,8 @@ export default class WebSerial extends AbstractSerial{
     // https://ja.stackoverflow.com/questions/2046/javascript%E5%AE%9F%E8%A1%8C%E7%92%B0%E5%A2%83%E3%81%AE%E5%88%A4%E5%AE%9A%E6%96%B9%E6%B3%95%E3%81%AB%E3%81%A4%E3%81%84%E3%81%A6
     // @ts-ignore
     private static isNode:boolean = false//(typeof process !== "undefined" && typeof require !== "undefined")
-    private callUpdateRequest:(()=>void)|undefined
+    private callUpdateRequestConnect:(()=>void)|undefined
+    private callUpdateRequestDisconnect:(()=>void)|undefined
 
     constructor(){
         super();
@@ -26,15 +27,16 @@ export default class WebSerial extends AbstractSerial{
         if (WebSerial.isNode) {
             throw(new Error("js-serial-web exected in node environment"))
         } else {
-            if (this.callUpdateRequest !== undefined){
+            if (this.callUpdateRequestConnect !== undefined || this.callUpdateRequestDisconnect !== undefined){
                 throw(new Error("Already Initialized WebSerial, but init() is called again."))
             } else {
                 const updateRequest = option?.portManager?.updateRequest
                 if (updateRequest) {
                     // this.callUpdateRequest = () => updateRequest() だと、callback時うまくthisが伝わらない
-                    this.callUpdateRequest = () => option?.portManager?.updateRequest()
-                    navigator.serial.addEventListener('connect', this.callUpdateRequest)
-                    navigator.serial.addEventListener('disconnect', this.callUpdateRequest)
+                    this.callUpdateRequestConnect = () => option?.portManager?.updateRequest("USB Attached")
+                    navigator.serial.addEventListener('connect', this.callUpdateRequestConnect)
+                    this.callUpdateRequestDisconnect = () => option?.portManager?.updateRequest("USB Detached")
+                    navigator.serial.addEventListener('disconnect', this.callUpdateRequestDisconnect)
                 } else {
                     // ToDoここ未テスト
                     throw(new Error("updateRequest dosen't exist in option.portManager"))
@@ -58,6 +60,7 @@ export default class WebSerial extends AbstractSerial{
                         id:-1,
                         pid:portInfo.usbProductId ?? 0,
                         vid:portInfo.usbVendorId ?? 0,
+                        reason:"Init"
                     },
                     port:new WebSerailPort(port)
                 }
@@ -139,12 +142,13 @@ export default class WebSerial extends AbstractSerial{
         if (WebSerial.isNode) {
             throw(new Error("js-serial-web exected in node environment"))
         } else {
-            if (this.callUpdateRequest === undefined){
+            if (this.callUpdateRequestConnect === undefined || this.callUpdateRequestDisconnect === undefined){
                 throw(new Error("Already finalized of not initialized WebSerial, but finalize() is called."))
             } else {
-                navigator.serial.removeEventListener('connect', this.callUpdateRequest)
-                navigator.serial.removeEventListener('disconnect', this.callUpdateRequest)
-                this.callUpdateRequest = undefined
+                navigator.serial.removeEventListener('connect', this.callUpdateRequestConnect)
+                navigator.serial.removeEventListener('disconnect', this.callUpdateRequestDisconnect)
+                this.callUpdateRequestConnect = undefined
+                this.callUpdateRequestDisconnect = undefined
             }
         }
     }
