@@ -49,7 +49,8 @@ export class NodeMockSerial extends AbstractSerial{
                 id:-1,
                 pid:parseInt(info.productId??"0", 16),
                 vid:parseInt(info.vendorId??"0", 16),
-                portName:info.path
+                portName:info.path,
+                reason:"Init"
             }
         }))
 //            console.log(result)
