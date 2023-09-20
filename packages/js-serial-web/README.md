@@ -1,3 +1,36 @@
+# Release History
+## Ver 0.0.1
+- Initial commit
+
+## Ver 0.0.2
+- Full Function is implemented.
+- Basic validation is checked & PASS.
+- Release to Git-HUB npm repository
+------------
+# GitHub Packageを使ったnpmリポジトリ登録
+## 参照情報
+- [npmレジストリの利用](https://docs.github.com/ja/packages/working-with-a-github-packages-registry/working-with-the-npm-registry)
+- 
+
+## 手順
+- [personal access token (classic) の作成](https://docs.github.com/ja/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#personal-access-token-classic-%E3%81%AE%E4%BD%9C%E6%88%90)
+
+- `New personal access token (classic)`のページに行く
+  - `Settings`-`Developer settings`-`Personal access tokens`から入る。
+- `write:packages`にチェックを入れる
+- `package.json`を修正
+  - name
+  - repository
+  - publishConfig
+- `.npmrc`の作成
+  - `//npm.pkg.github.com/:_authToken=gh......................OU`の1行
+- `.gitignore`の修正
+  - `.npmrc`をコミット対象外にする
+- 事前ビルド確認
+  - `npm run build`でちゃんとbuildが通ることを確認
+- npm publish
+  - gitリポジトリのTOPページに、パッケージ情報が出るようになる。
+
 # web-serial-worker
 worker thread for web-serial port access with main thread adapter.
 
