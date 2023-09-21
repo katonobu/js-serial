@@ -27,7 +27,10 @@ describe("CreatePortLen", () => {
         await page.evaluate(() => {
             document.title = "CreatePortLen"
         });
+        await clickAndWait(page, '#init', 'init', 0)
         await deleteAll(page)
+        await page.reload();
+        await page.waitForSelector('#init')
         await clickAndWait(page, '#init', 'init', 0)
         await page.evaluate((openningMessage) => {
           window.alert(openningMessage.join('\n'))

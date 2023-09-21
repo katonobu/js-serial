@@ -30,7 +30,10 @@ describe("PidVidFilter", () => {
     await page.evaluate(() => {
         document.title = "PidVidFilter"
     });
+    await clickAndWait(page, '#init', 'init', 0)
     await deleteAll(page)
+    await page.reload();
+    await page.waitForSelector('#init')
     await clickAndWait(page, '#init', 'init', 0)
     await page.evaluate((openningMessage) => {
       window.alert(openningMessage.join('\n'))
@@ -39,7 +42,7 @@ describe("PidVidFilter", () => {
 
   afterAll(async () => {
     await deleteAll(page)
-    await clickAndWait(page, '#finalize', 'finalize', 0)
+    await clickAndWait(page, '#finalize', 'finalize', 1000)
     await page.reload();
   });
 
