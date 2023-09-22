@@ -12,7 +12,8 @@ import {
 
 interface rxLineNumType {
     totalLines:number;
-    updatedLines:number
+    updatedLines:number;
+    addedLines:rxLineBuffType[]
 }
 
 interface rxLineUpdateType {
@@ -337,7 +338,7 @@ export class JsSerialBase{
             attachedIds.forEach((id)=> {
                 this._openCloseSttStore[id] = new MicroStore(false)
                 this._rxLineBuffers[id] = []
-                this._rxLineNumStore[id] = new MicroStore({totalLines:0, updatedLines:0})
+                this._rxLineNumStore[id] = new MicroStore({totalLines:0, updatedLines:0, addedLines:[]})
 
             })
         }
@@ -406,11 +407,11 @@ export class JsSerialBase{
                 const ts:number = (new Date()).getTime()
                 const buff = this._rxLineBuffers[id]
                 const prevLen = buff.length
-                const addLines = updatedLines.map((data, idx)=>({data, ts, id:idx+prevLen}))
+                const addedLines = updatedLines.map((data, idx)=>({data, ts, id:idx+prevLen}))
 //                console.log(id, ts, buff.length, updateData.length)
-//                console.log(JSON.stringify(addLines))
-                this._rxLineBuffers[id] = buff.concat(addLines)
-                this._rxLineNumStore[id].update({totalLines:this._rxLineBuffers[id].length, updatedLines:updatedLines.length})
+//                console.log(JSON.stringify(addedLines))
+                this._rxLineBuffers[id] = buff.concat(addedLines)
+                this._rxLineNumStore[id].update({totalLines:this._rxLineBuffers[id].length, updatedLines:updatedLines.length, addedLines})
             }
             return true
         } else {
@@ -421,7 +422,7 @@ export class JsSerialBase{
         if (id < this._rxLineNumStore.length){
             return this._rxLineNumStore[id].get()
         } else {
-            return { totalLines:0, updatedLines:0}
+            return { totalLines:0, updatedLines:0, addedLines:[]}
         }
     }    
     getRxLines(id:portIdType, start:number, end:number):rxLinesType {

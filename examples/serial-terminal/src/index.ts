@@ -254,7 +254,7 @@ async function connectToPort(): Promise<void> {
   flowControlCheckbox.disabled = true;
 
   try {
-    await jsw.openPort(portId, options);
+    await jsw.openPort(portId, {serialOptions:options});
     term.writeln('<CONNECTED>');
     connectButton.textContent = 'Disconnect';
     connectButton.disabled = false;
@@ -269,12 +269,8 @@ async function connectToPort(): Promise<void> {
   const unsubscribe = jsw.subscribeRxLineNum(portId, ()=>{
     if (portId !== undefined) {
       const rxLineNum = jsw.getRxLineNum(portId);
-      const rxData = jsw.getRxLines(
-          portId,
-          rxLineNum.totalLines - rxLineNum.updatedLines,
-          rxLineNum.totalLines
-      );
-      rxData.data.map((line)=>line.data.replace(/\r\n|\r|\n/, ''))
+      rxLineNum.addedLines
+          .map((line)=>line.data.replace(/\r\n|\r|\n/, ''))
           .forEach((data)=>term.writeln(data));
     }
   });

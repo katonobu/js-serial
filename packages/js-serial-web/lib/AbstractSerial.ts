@@ -1,9 +1,10 @@
 export type portIdType = number
 export type portInfoType = {
     id:portIdType,
-    pid:number,
-    vid:number,
-    portName?:string,
+    deviceId?:string,
+    pid?:number,
+    vid?:number,
+    name?:string,
     reason:string
 }
 export type devicePortType = object /* SerialPort */
@@ -23,15 +24,17 @@ export type deviceKeyPortInfoAvailableType = {
 
 export type portStoreCurrentType = {
     id:portIdType;
-    pid:number;
-    vid:number;
-    portName?:string;
+    deviceId?:string;
+    pid?:number,
+    vid?:number,
+    name?:string;
     reason:string;
     available:boolean;
 }
 
 export type openOptionType = {
-    baudRate:number
+    serialOptions:SerialOptions
+    updateOpenStt?:(stt:boolean)=>void
 }
 
 export type initOptionType = {
@@ -51,7 +54,8 @@ export type receivePortOptionType = {
 export type startReceiveReturnType = 
     "Close" |
     "Stop" |
-    "UsbDetached"
+    "UsbDetached"|
+    "OK"
 
 export type sendPortReturnType = 
     "OK" |
@@ -95,7 +99,7 @@ export class MicroStore<T> {
 }
 
 type InitFunction = (option:initOptionType) => Promise<void>
-type GetDeviceKeyPortInfosFunction = () => Promise<deviceKeyPortInfoType[]>
+type GetDeviceKeyPortInfosFunction = (newPort?:object) => Promise<deviceKeyPortInfoType[]>
 type PromptGrantAccessFunction = (option:object/*createOption*/)=>Promise<devicePortType>
 type CreatePortFunction = (path:string)=>devicePortType
 type DeletePortFunction = (devicePort:deviceKeyPortInfoAvailableType)=>Promise<portStoreCurrentType>

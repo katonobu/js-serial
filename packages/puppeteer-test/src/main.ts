@@ -215,7 +215,7 @@ openEle.onclick = ()=>{
       openOption = getGuiOpenOptions()
     }
     console.log("open", openPortIdStr, JSON.stringify(openOption))
-    jsw.openPort(parseInt(openPortIdStr), openOption)
+    jsw.openPort(parseInt(openPortIdStr), {serialOptions:openOption})
     .then((result)=>{
       logTransaction("open", {openOption, idStr:openPortIdStr}, {result})
     })
@@ -268,7 +268,13 @@ startReceiveEle.onclick = ()=>{
   if (jsw) {
     const receivePortIdStr = currentPortStrId.innerText
     jsw.startReceivePort(parseInt(receivePortIdStr, 10))
-    logTransaction("start_receive", {idStr:receivePortIdStr},{})
+    .then((result)=>{
+      logEvent("start_receive", {idStr:receivePortIdStr, result})
+    })
+    .catch((e)=>{
+      logEvent("start_receive", {idStr:receivePortIdStr, error:e.toString()})
+    })
+    logTransaction("start_receive", {idStr:receivePortIdStr},{result:"Started"})
   } else {
     console.error("jsw is undefined")
   }
@@ -279,7 +285,12 @@ stopReceiveEle.onclick = ()=>{
   if (jsw) {
     const receivePortIdStr = currentPortStrId.innerText
     jsw.stopReceivePort(parseInt(receivePortIdStr, 10))
-    logTransaction("stop_receive", {idStr:receivePortIdStr},{})
+    .then((result)=>{
+      logTransaction("stop_receive", {idStr:receivePortIdStr},{result})
+    })
+    .catch((e)=>{
+      logTransaction("stop_receive", {idStr:receivePortIdStr},{msg:e.toString()}, true)
+    })
   } else {
     console.error("jsw is undefined")
   }

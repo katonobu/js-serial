@@ -1,5 +1,6 @@
 import { 
     portIdType, 
+    devicePortType,    
     portStoreCurrentType,
     compareKeyType, 
     openOptionType,
@@ -11,7 +12,8 @@ import {
 
 interface rxLineNumType {
     totalLines:number;
-    updatedLines:number
+    updatedLines:number;
+    addedLines:rxLineBuffType[]
 }
 
 interface rxLineUpdateType {
@@ -117,7 +119,7 @@ export class JsSerialBase{
     async promptGrantAccess(option:any/*createOption*/ = {}):Promise<portStoreCurrentType> {
         try {
             const newPort = await this._serial.promptGrantAccess(option)
-            await this.updateRequest("GrantReq")
+            await this.updateRequest("GrantReq", newPort)
             const matched:deviceKeyPortInfoAvailableType|undefined = this._idToObj.find((obj)=>obj.key===newPort)
             if (matched) {
                 return {...matched.info, available:matched.available}
@@ -130,7 +132,7 @@ export class JsSerialBase{
             } else if (e instanceof DOMException) {
                 if (e.name === "NotFoundError") {
                     // user cancel
-                    return {id:-1, pid:-1, vid:-1, available:false, reason:'GrantReq'}
+                    return {id:-1, pid:-1, vid:-1, name:"", deviceId:"", available:false, reason:'GrantReq'}
                 } else if (e.name === 'SecurityError') {
                     // not user gesture
                 } else {
@@ -154,7 +156,7 @@ export class JsSerialBase{
             return ret
         } catch (e) {
             console.log(e)
-            return {id:-1, pid:-1, vid:-1, available:false, reason:"Deleted"}
+            return {id:-1, pid:-1, vid:-1, name:"", deviceId:"", available:false, reason:"Deleted"}
         }
     }
     /**
@@ -167,9 +169,12 @@ export class JsSerialBase{
      *     optionで指定した値が不適切な場合、TypeErrorをthrowします。
      *     そのポートがほかのアプリケーションで使われていた場合、DOMException.NetworkErrorをthrowします。
      */
-    async openPort(id:portIdType, option:openOptionType = {baudRate:115200}):Promise<string> {
+    async openPort(id:portIdType, option:openOptionType = {serialOptions:{baudRate:115200}}):Promise<string> {
         try {
-            const ret = await this._serial.openPort(this._idToObj[id].port, option)
+            const ret = await this._serial.openPort(
+                this._idToObj[id].port, 
+                {...option,updateOpenStt:(updateStt:boolean):void => this._openCloseSttStore[id].update(updateStt)}
+            )
             this._openCloseSttStore[id].update(true)
             return ret
         }catch (e){
@@ -245,8 +250,8 @@ export class JsSerialBase{
         return this._serial.finalize({})
     }
 
-    async updateRequest(reason:updateRequestReasonType):Promise<void>{
-        const portKeyObjInfos = await this._serial.getDeviceKeyPortInfos()
+    async updateRequest(reason:updateRequestReasonType, newPort?:devicePortType):Promise<void>{
+        const portKeyObjInfos = await this._serial.getDeviceKeyPortInfos(newPort)
 
         const latestKeys = portKeyObjInfos.map((pkoi)=>pkoi.key)
         const currentKeys = this._currentKeysCache
@@ -271,9 +276,9 @@ export class JsSerialBase{
                         matched.info.reason = reason
                         const portKeyObjInfoFromKey = portKeyObjInfos.find((pkoi)=>pkoi.key===key)
                         if (portKeyObjInfoFromKey){
-                            if (portKeyObjInfoFromKey.info.portName && portKeyObjInfoFromKey.info.portName !== "") {
+                            if (portKeyObjInfoFromKey.info.name && portKeyObjInfoFromKey.info.name !== "") {
                                 // node
-                                matched.port = this._serial.createPort(portKeyObjInfoFromKey.info.portName)
+                                matched.port = this._serial.createPort(portKeyObjInfoFromKey.info.name)
                             } else {
                                 // web-serial
                             }
@@ -301,22 +306,23 @@ export class JsSerialBase{
                                     id:newId,
                                     pid:portObjInfoFromKey.info.pid, 
                                     vid:portObjInfoFromKey.info.vid, 
-                                    portName:portObjInfoFromKey.info.portName?? "",
+                                    deviceId:portObjInfoFromKey.info.deviceId,
+                                    name:portObjInfoFromKey.info.name,
                                     reason:reason
                                 }
                             })
                             attachedIds.push(newId)
-                        } else if (portObjInfoFromKey.info.portName){
+                        } else if (portObjInfoFromKey.info.name){
                             // node-serial
                             this._idToObj.push({
                                 key,
                                 available:true,
-                                port:this._serial.createPort(portObjInfoFromKey.info.portName),
+                                port:this._serial.createPort(portObjInfoFromKey.info.name),
                                 info:{
                                     id:newId,
                                     pid:portObjInfoFromKey.info.pid, 
                                     vid:portObjInfoFromKey.info.vid, 
-                                    portName:portObjInfoFromKey.info.portName?? "",
+                                    name:portObjInfoFromKey.info.name,
                                     reason:reason
                                 }
                             })
@@ -332,7 +338,7 @@ export class JsSerialBase{
             attachedIds.forEach((id)=> {
                 this._openCloseSttStore[id] = new MicroStore(false)
                 this._rxLineBuffers[id] = []
-                this._rxLineNumStore[id] = new MicroStore({totalLines:0, updatedLines:0})
+                this._rxLineNumStore[id] = new MicroStore({totalLines:0, updatedLines:0, addedLines:[]})
 
             })
         }
@@ -401,11 +407,11 @@ export class JsSerialBase{
                 const ts:number = (new Date()).getTime()
                 const buff = this._rxLineBuffers[id]
                 const prevLen = buff.length
-                const addLines = updatedLines.map((data, idx)=>({data, ts, id:idx+prevLen}))
+                const addedLines = updatedLines.map((data, idx)=>({data, ts, id:idx+prevLen}))
 //                console.log(id, ts, buff.length, updateData.length)
-//                console.log(JSON.stringify(addLines))
-                this._rxLineBuffers[id] = buff.concat(addLines)
-                this._rxLineNumStore[id].update({totalLines:this._rxLineBuffers[id].length, updatedLines:updatedLines.length})
+//                console.log(JSON.stringify(addedLines))
+                this._rxLineBuffers[id] = buff.concat(addedLines)
+                this._rxLineNumStore[id].update({totalLines:this._rxLineBuffers[id].length, updatedLines:updatedLines.length, addedLines})
             }
             return true
         } else {
@@ -416,7 +422,7 @@ export class JsSerialBase{
         if (id < this._rxLineNumStore.length){
             return this._rxLineNumStore[id].get()
         } else {
-            return { totalLines:0, updatedLines:0}
+            return { totalLines:0, updatedLines:0, addedLines:[]}
         }
     }    
     getRxLines(id:portIdType, start:number, end:number):rxLinesType {

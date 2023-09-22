@@ -1,7 +1,8 @@
 import {
     receivePortOptionType,
     startReceiveReturnType,
-    sendPortReturnType
+    sendPortReturnType,
+    openOptionType
 } from "./AbstractSerial";
 
 export default class WebSerailPort {
@@ -29,12 +30,12 @@ export default class WebSerailPort {
         }
         return "OK"
     }
-    openPort = async (opt:SerialOptions):Promise<string>=>{
+    openPort = async (opt:openOptionType):Promise<string>=>{
         const port = this._port
         if (!port) {
             throw new Error("Invalid Id is specified to openPort()")
         } else {
-            const openOption = opt as SerialOptions
+            const openOption = opt.serialOptions
             // rejected if (described in https://wicg.github.io/serial/#open-method)
             //   not closed:"InvalidStateError" DOMException
             //   options["dataBits"] is not 7 or 8: TypeError 
