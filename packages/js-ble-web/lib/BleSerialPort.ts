@@ -1,4 +1,5 @@
 import {
+    receivePortOptionType,
     startReceiveReturnType,
     sendPortReturnType,
     openOptionType
@@ -47,13 +48,12 @@ export default class BleSerailPort {
             throw new Error("Invalid Id is specified to openPort()")
         } else if ( port.gatt && port.gatt.connected) {
             throw new Error("Already opened")
-            throw new Error("updateOpenStt dosen't exist in option")
         } else {
             if (opt.updateOpenStt) {
                 bleSerialPortLog("    Device.Name:" + port.name);
                 bleSerialPortLog("    Device.Id:"   + port.id);
                 this._updateOpenStt = opt.updateOpenStt
-                port.addEventListener('gattserverdisconnected', ()=>{
+                const disconnectCb = ()=>{
                     bleSerialPortLog("DisconnectedEvent")
                     this._updateOpenStt(false)
                     this._onRxCb = ()=>{}
@@ -61,31 +61,55 @@ export default class BleSerailPort {
                     this._txCharacteristic = undefined
                     this._uartService = undefined
                     this._services = []
-                })
-                bleSerialPortLog('  Connecting GATT service..')
-                const server = await port.gatt?.connect()
-                bleSerialPortLog('  GATT connected.')
-                if (server) {
-                    bleSerialPortLog('  Getting PrimaryServices');
-                    const services = await server.getPrimaryServices();
-                    bleSerialPortLog('  Got ' + services.length.toString(10) + ' services');
-                    for (var i = 0; i < services.length; i++) {
-                        bleSerialPortLog('    Service[' + i + ']');
-                        bleSerialPortLog('      UUID:'+services[i].uuid);
-                        var service = await ble_setService(services[i]);
-                        this._services.push(service);
-                        this._uartService = this._services.find((svc:{uuid:string})=>svc.uuid === "ae880180-3336-4b92-8269-f978b9d4b5db")
-                        if (this._uartService){
-                            this._txCharacteristic = this._uartService.characteristics.find((ch:{uuid:string})=>ch.uuid === "ae882c80-3336-4b92-8269-f978b9d4b5db")?.characteristic
-                            this._rxCharacteristic = this._uartService.characteristics.find((ch:{uuid:string})=>ch.uuid === "ae882c81-3336-4b92-8269-f978b9d4b5db")?.characteristic
-                        }
-                    }
-                    bleSerialPortLog('  Try to Notification Enable');
+                    port.removeEventListener('gattserverdisconnected',disconnectCb)
                 }
-                bleSerialPortLog(JSON.stringify(this._services, null, 2))
+                port.addEventListener('gattserverdisconnected', disconnectCb)
+                bleSerialPortLog('  Connecting GATT service..')
+                if (port.gatt) {
+                    const server = await port.gatt.connect()
+                    if (server) {
+                        bleSerialPortLog('  GATT connected.')
+                        bleSerialPortLog('  Getting PrimaryServices');
+                        const timeoutReject = new Promise((_, reject)=>{
+                            setTimeout(()=>{
+                                reject(new Error("Get Service Failed, timeout"))
+                            }, 10 * 1000)
+                        })
+                        try {
+                            const services = await Promise.race([timeoutReject, server.getPrimaryServices()])
+                            if (services && Array.isArray(services)) {
+                                bleSerialPortLog('  Got ' + services.length.toString(10) + ' services');
+                                for (var i = 0; i < services.length; i++) {
+                                    bleSerialPortLog('    Service[' + i + ']');
+                                    bleSerialPortLog('      UUID:'+services[i].uuid);
+                                    var service = await ble_setService(services[i]);
+                                    this._services.push(service);
+                                    this._uartService = this._services.find((svc:{uuid:string})=>svc.uuid === "ae880180-3336-4b92-8269-f978b9d4b5db")
+                                    if (this._uartService){
+                                        this._txCharacteristic = this._uartService.characteristics.find((ch:{uuid:string})=>ch.uuid === "ae882c80-3336-4b92-8269-f978b9d4b5db")?.characteristic
+                                        this._rxCharacteristic = this._uartService.characteristics.find((ch:{uuid:string})=>ch.uuid === "ae882c81-3336-4b92-8269-f978b9d4b5db")?.characteristic
+                                    }
+                                }
+                                bleSerialPortLog('  Try to Notification Enable');
+                                bleSerialPortLog(JSON.stringify(this._services, null, 2))
+                            } else {
+                                await port.gatt.disconnect()
+                                throw(new Error("Get Service Failed"))
+                            }
+                        } catch(e){
+                            await port.gatt.disconnect()
+                            throw(e)
+                        }
+                    } else {
+                        await port.gatt.disconnect()
+                        throw(new Error("Connection Failed"))
+                    }
+                } else {
+                    throw(new Error("Gatt is empty"))
+                }
             }
         }
-        return Promise.resolve("OK")
+        return "OK"
     }
     getOnRx = (cb:(updateData:Uint8Array)=>boolean)=> (event:any) => {
         bleSerialPortLog('Receive Notify');
@@ -101,7 +125,7 @@ export default class BleSerailPort {
         const len = event.target.value.getUint8(0);
         cb(event.target.value.buffer.slice(1, 1+len))
     }
-    startReceivePort = async (option: {updateRx:(updateData:Uint8Array)=>boolean}):Promise<startReceiveReturnType> => {
+    startReceivePort = async (option: receivePortOptionType):Promise<startReceiveReturnType> => {
         const {updateRx} = option
         this._onRxCb = this.getOnRx(updateRx)
         if (this._uartService && this._rxCharacteristic){
