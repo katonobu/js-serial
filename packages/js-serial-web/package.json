@@ -1,6 +1,6 @@
 {
   "name": "@katonobu/js-serial-web",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "main": "./dist/js-serial-web.umd.js",
   "module": "./dist/js-serial-web.es.js",
   "exports": {
