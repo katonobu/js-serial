@@ -41,6 +41,8 @@ let flushOnEnterCheckbox: HTMLInputElement;
 let autoconnectCheckbox: HTMLInputElement;
 
 let portId: number | undefined;
+let unsubscribeRx:()=>void = ()=>{}
+let unsubscribeClose:()=>void = ()=>{}
 
 const jsw:JsSerialWeb = new JsSerialWeb();
 
@@ -205,6 +207,10 @@ function getSelectedBaudRate(): number {
  */
 function markDisconnected(): void {
   term.writeln('<DISCONNECTED>');
+  unsubscribeRx();
+  unsubscribeRx = ()=>{}
+  unsubscribeClose()
+  unsubscribeClose = ()=>{}
   portSelector.disabled = false;
   connectButton.textContent = 'Connect';
   connectButton.disabled = false;
@@ -253,34 +259,31 @@ async function connectToPort(): Promise<void> {
   stopBitsSelector.disabled = true;
   flowControlCheckbox.disabled = true;
 
-  try {
-    await jsw.openPort(portId, {serialOptions:options});
+  const openResult = await jsw.openPort(portId, {serialOpenOptions:options})
+  if ( openResult === "OK"){
+    unsubscribeRx = jsw.subscribeRxLineNum(portId, ()=>{
+      if (portId !== undefined) {
+        const rxLineNum = jsw.getRxLineNum(portId);
+        rxLineNum.addedLines
+            .map((line)=>line.data.replace(/\r\n|\r|\n/, ''))
+            .forEach((data)=>term.writeln(data));
+      }
+    });
+    unsubscribeClose = jsw.subscribeOpenStt(portId, ()=>{
+      if (portId !== undefined) {
+        if (jsw.getOpenStt(portId) === false) {
+          markDisconnected()
+        }
+      }
+    })
+    jsw.startReceivePort(portId)
     term.writeln('<CONNECTED>');
     connectButton.textContent = 'Disconnect';
     connectButton.disabled = false;
-  } catch (e) {
-    console.error(e);
-    if (e instanceof Error) {
-      term.writeln(`<ERROR: ${e.message}>`);
-    }
+  } else {
+    term.writeln(`<ERROR: ${openResult}>`);
     markDisconnected();
-    return;
   }
-  const unsubscribe = jsw.subscribeRxLineNum(portId, ()=>{
-    if (portId !== undefined) {
-      const rxLineNum = jsw.getRxLineNum(portId);
-      rxLineNum.addedLines
-          .map((line)=>line.data.replace(/\r\n|\r|\n/, ''))
-          .forEach((data)=>term.writeln(data));
-    }
-  });
-  jsw.startReceivePort(portId)
-      .then(()=>{
-        unsubscribe();
-        if (portId !== undefined) {
-          markDisconnected();
-        }
-      });
 }
 
 /**
@@ -294,7 +297,7 @@ async function disconnectFromPort(): Promise<void> {
 
   if (localPort !== undefined) {
     try {
-      jsw.closePort(localPort);
+      await jsw.closePort(localPort);
     } catch (e) {
       console.error(e);
       if (e instanceof Error) {
@@ -302,7 +305,6 @@ async function disconnectFromPort(): Promise<void> {
       }
     }
   }
-
   markDisconnected();
 }
 
