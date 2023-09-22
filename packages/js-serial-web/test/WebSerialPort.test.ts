@@ -71,8 +71,8 @@ const validStartRxOption = {
 const validSendPortOption = {
     updateOpenStt:dummyTxUpdateOpenStt
 }
-const validPortOption = {serialOptions:{baudRate:115200} as SerialOptions}
-const slowPortOption = {serialOptions:{baudRate:1200} as SerialOptions}
+const validPortOption = {serialOpenOptions:{baudRate:115200} as SerialOptions}
+const slowPortOption = {serialOpenOptions:{baudRate:1200} as SerialOptions}
 
 describe.sequential('initWithNull throws Error', () => {
     const invalidPort = null as unknown as SerialPort
@@ -105,41 +105,41 @@ describe.sequential('OpenPort Parameter error', async () => {
         expect(await vwsp.closePort()).toBe('OK')
     })
     it('undefined baudRate throws TypeError', async()=>{
-        const invalidPortOption = {serialOptions:{} as unknown as SerialOptions}
+        const invalidPortOption = {serialOpenOptions:{} as unknown as SerialOptions}
         await expect(() => vwsp.openPort(invalidPortOption)).rejects.toThrowError(/baudRate/)
     })
     it('baudRate===0 throws TypeError', async()=>{
-        const invalidPortOption = {serialOptions:{baudRate:0} as SerialOptions}
+        const invalidPortOption = {serialOpenOptions:{baudRate:0} as SerialOptions}
         await expect(() => vwsp.openPort(invalidPortOption)).rejects.toThrowError(/baud rate/)
     })
     it('dataBits===6 throws TypeError', async()=>{
         /// 4.4 open() method The open() method steps 3
-        const invalidPortOption = {serialOptions:{baudRate:115200, dataBits:6} as SerialOptions}
+        const invalidPortOption = {serialOpenOptions:{baudRate:115200, dataBits:6} as SerialOptions}
         await expect(() => vwsp.openPort(invalidPortOption)).rejects.toThrowError(/data bits/)
     })
     it('stopBits===3 throws TypeError', async()=>{
         /// 4.4 open() method The open() method steps 4
-        const invalidPortOption = {serialOptions:{baudRate:115200, stopBits:3} as SerialOptions}
+        const invalidPortOption = {serialOpenOptions:{baudRate:115200, stopBits:3} as SerialOptions}
         await expect(() => vwsp.openPort(invalidPortOption)).rejects.toThrowError(/stop bits/)
     })
     it('bufferSize===0 throws TypeError', async()=>{
         /// 4.4 open() method The open() method steps 5
-        const invalidPortOption = {serialOptions:{baudRate:115200, bufferSize:0} as SerialOptions}
+        const invalidPortOption = {serialOpenOptions:{baudRate:115200, bufferSize:0} as SerialOptions}
         await expect(() => vwsp.openPort(invalidPortOption)).rejects.toThrowError(/buffer size/)
     })
     it('bufferSize===16M+1 throws TypeError', async()=>{
         /// 4.4 open() method The open() method steps 6
-        const invalidPortOption = {serialOptions:{baudRate:115200, bufferSize:16 * 1024 * 1024 + 1} as SerialOptions}
+        const invalidPortOption = {serialOpenOptions:{baudRate:115200, bufferSize:16 * 1024 * 1024 + 1} as SerialOptions}
         await expect(() => vwsp.openPort(invalidPortOption)).rejects.toThrowError(/buffer size/)
     })
     it('parity==="stick0" throws TypeError', async()=>{
         /// must be "none"|"even"|"odd"
-        const invalidPortOption = {serialOptions:{baudRate:115200,  parity:'stick0'} as unknown as SerialOptions}
+        const invalidPortOption = {serialOpenOptions:{baudRate:115200,  parity:'stick0'} as unknown as SerialOptions}
         await expect(() => vwsp.openPort(invalidPortOption)).rejects.toThrowError(/parity/)
     })
     it('flowControl==="software" throws TypeError', async()=>{
         /// must be "none"|"hardware"
-        const invalidPortOption = {serialOptions:{baudRate:115200,  flowControl:'software'} as unknown as SerialOptions}
+        const invalidPortOption = {serialOpenOptions:{baudRate:115200,  flowControl:'software'} as unknown as SerialOptions}
         await expect(() => vwsp.openPort(invalidPortOption)).rejects.toThrowError(/flowControl/)
     })
     it('at last open/close successfully', async()=>{

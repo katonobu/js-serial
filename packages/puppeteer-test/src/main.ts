@@ -215,7 +215,7 @@ openEle.onclick = ()=>{
       openOption = getGuiOpenOptions()
     }
     console.log("open", openPortIdStr, JSON.stringify(openOption))
-    jsw.openPort(parseInt(openPortIdStr), {serialOptions:openOption})
+    jsw.openPort(parseInt(openPortIdStr), {serialOpenOptions:openOption})
     .then((result)=>{
       logTransaction("open", {openOption, idStr:openPortIdStr}, {result})
     })

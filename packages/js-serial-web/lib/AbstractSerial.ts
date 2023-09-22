@@ -33,7 +33,7 @@ export type portStoreCurrentType = {
 }
 
 export type openOptionType = {
-    serialOptions:SerialOptions
+    serialOpenOptions:SerialOptions
     updateOpenStt?:(stt:boolean)=>void
 }
 

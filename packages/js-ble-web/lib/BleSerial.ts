@@ -2,10 +2,10 @@ import {
     AbstractSerial,
     portStoreCurrentType,
     devicePortType,
-    openOptionType,
     deviceKeyPortInfoType,
     deviceKeyPortInfoAvailableType,
     initOptionType,    
+    openOptionType,
     receivePortOptionType,
     startReceiveReturnType,
     sendPortReturnType
@@ -32,7 +32,7 @@ export default class BleSerial extends AbstractSerial{
             } else {
                 const updateRequest = option?.portManager?.updateRequest
                 if (updateRequest) {
-                    // BLEでは、availabilitychangedに対応するか、、、
+                    // this.callUpdateRequest = () => updateRequest() だと、callback時うまくthisが伝わらない
                     this.callUpdateRequestConnect = () => option?.portManager?.updateRequest("USB Attached")
                     this.callUpdateRequestDisconnect = () => option?.portManager?.updateRequest("USB Detached")
                 } else {
@@ -114,10 +114,7 @@ export default class BleSerial extends AbstractSerial{
             return {...dp.info, available:dp.available}
         }
     }
-    openPort = async (
-        dp:devicePortType,
-        opt:openOptionType,
-    ):Promise<string>=>{
+    openPort = async (dp:devicePortType, opt:openOptionType):Promise<string>=>{
         if (BleSerial.isNode) {
             throw(new Error("js-serial-web exected in node environment"))
         } else {
@@ -125,15 +122,12 @@ export default class BleSerial extends AbstractSerial{
             return port.openPort(opt)
         }
     }
-    startReceivePort = async (
-        dp:devicePortType,
-        option: receivePortOptionType
-    ):Promise<startReceiveReturnType> => {
+    startReceivePort = async (dp:devicePortType, option: receivePortOptionType):Promise<startReceiveReturnType> => {
         if (BleSerial.isNode) {
             throw(new Error("js-serial-web exected in node environment"))
         } else {
             const port = dp as BleSerailPort
-            return port.startReceivePort({updateRx:option.updateRx})
+            return port.startReceivePort(option)
         }
     }
     stopReceivePort = async (dp:devicePortType):Promise<string> => {

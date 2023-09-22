@@ -35,7 +35,7 @@ export default class WebSerailPort {
         if (!port) {
             throw new Error("Invalid Id is specified to openPort()")
         } else {
-            const openOption = opt.serialOptions
+            const openOption = opt.serialOpenOptions
             // rejected if (described in https://wicg.github.io/serial/#open-method)
             //   not closed:"InvalidStateError" DOMException
             //   options["dataBits"] is not 7 or 8: TypeError 

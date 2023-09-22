@@ -169,7 +169,7 @@ export class JsSerialBase{
      *     optionで指定した値が不適切な場合、TypeErrorをthrowします。
      *     そのポートがほかのアプリケーションで使われていた場合、DOMException.NetworkErrorをthrowします。
      */
-    async openPort(id:portIdType, option:openOptionType = {serialOptions:{baudRate:115200}}):Promise<string> {
+    async openPort(id:portIdType, option:openOptionType = {serialOpenOptions:{baudRate:115200}}):Promise<string> {
         try {
             const ret = await this._serial.openPort(
                 this._idToObj[id].port, 
