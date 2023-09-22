@@ -6,6 +6,11 @@
 - Full Function is implemented.
 - Basic validation is checked & PASS.
 - Release to Git-HUB npm repository
+
+## Ver 0.0.3
+- Add rxData to RxLineNum, this can reduce getting rx data.
+- Apply feedback from ble-serial
+
 ------------
 # GitHub Packageを使ったnpmリポジトリ登録
 ## 参照情報
