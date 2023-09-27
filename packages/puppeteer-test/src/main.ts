@@ -344,3 +344,23 @@ const portslenResult = document.querySelector<HTMLPreElement>('#portslen')!
 portslenResult.innerText = '0'
 const openSttStr = document.querySelector<HTMLPreElement>('#open_stt')!
 openSttStr.innerText = ''
+
+const setSignalButtoEle = document.querySelector<HTMLButtonElement>('#set_signal_button')!
+const setSignalInputEle = document.querySelector<HTMLInputElement>('#set_signal_text')!
+setSignalButtoEle.onclick = ()=>{
+  if (jsw) {
+    const setPortIdStr = currentPortStrId.innerText
+    console.log(setSignalInputEle.value)
+    const paramObj = JSON.parse(setSignalInputEle.value)
+    console.log(JSON.stringify(paramObj))
+    jsw.setPort(parseInt(setPortIdStr, 10), paramObj, {})
+    .then((result)=>{
+      logTransaction("setPort", paramObj, {result})
+    })
+    .catch((e)=>{
+      logTransaction("setPort", paramObj, {msg:e.toString()}, true) 
+    })
+  } else {
+    console.error("jsw is undefined")
+  }
+}

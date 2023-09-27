@@ -107,6 +107,7 @@ type OpenPortFunction = (devicePort:devicePortType, option:openOptionType)=>Prom
 type StartReceivePortFunction = (deviePort:devicePortType, option:receivePortOptionType)=>Promise<startReceiveReturnType>
 type StopReceivePortFunction = (deviePort:devicePortType)=>Promise<string>
 type SendPortFunction = (deviePort:devicePortType, msg: Uint8Array, option:object)=>Promise<sendPortReturnType>
+type SetPortFunction = (deviePort:devicePortType, param: SerialOutputSignals , option:object)=>Promise<string>
 type ClosePortFunction = (devicePort:devicePortType)=>Promise<string>
 type FinalizeFunction = (opt:object) => Promise<void>
 
@@ -120,6 +121,7 @@ export abstract class AbstractSerial{
     abstract startReceivePort:StartReceivePortFunction
     abstract stopReceivePort:StopReceivePortFunction
     abstract sendPort:SendPortFunction
+    abstract setPort:SetPortFunction
     abstract closePort:ClosePortFunction
     abstract finalize:FinalizeFunction
 }

@@ -305,7 +305,38 @@ export default class WebSerailPort {
             }
         }
         return retStr
-    }    
+    }
+    setPort = async (
+        param: SerialOutputSignals,
+        // @ts-ignore
+        option:object
+    ):Promise<string> => {
+        const port = this._port
+        let retStr = "OK"
+        if (!port) {
+            throw new Error("Invalid Id is specified to sendPort()")
+        } else {
+            try {
+                await port.setSignals(param)
+            } catch (e) {
+                if (e instanceof DOMException) {
+                    if (e.name === "NetworkError") {
+                        // the operating system fails to change the state
+                        throw e
+                    } else {
+                        throw e
+                    }
+                } else if (typeof e === 'string') {
+                    // required member of param is not exist
+                    throw e
+                } else {
+                    throw e
+                }
+            }
+        }
+        return retStr
+    }
+
     closePort = async ():Promise<string>=>{
         const port = this._port
         if (!port) {

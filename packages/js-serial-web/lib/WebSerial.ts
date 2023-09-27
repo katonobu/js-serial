@@ -130,6 +130,17 @@ export default class WebSerial extends AbstractSerial{
             return port.sendPort(msg, option)
         }
     }
+    setPort = async (
+        dp:devicePortType,
+        param: SerialOutputSignals,
+        option:object):Promise<string> => {
+        if (WebSerial.isNode) {
+            throw(new Error("js-serial-web exected in node environment"))
+        } else {
+            const port = dp as WebSerailPort
+            return port.setPort(param, option)
+        }    
+    }
     closePort = async (dp:object):Promise<string>=>{
         if (WebSerial.isNode) {
             throw(new Error("js-serial-web exected in node environment"))

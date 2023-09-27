@@ -78,9 +78,21 @@
           <pre id="last_rx"> </pre>
           <pre id="rx_lines_option">{"start":0, "end":0}</pre>
           <button id="receive_lines" type="button">ReceiveLines</button>
-          <h4>send / last tx string</h4>
+        <h4>send / last tx string</h4>
           <button id="send" type="button">Send</button>
           <pre id="last_tx"> </pre>
+        <h4>set port signal</h4>
+          <label for="set_signal">setPort parameter</label>
+          <input type="text" id="set_signal_text" name="set_signal" list="set_signal_list"/>
+          <datalist id="set_signal_list">
+            <option value='{"requestToSend":true, "dataTerminalReady":true}'></option>
+            <option value='{"requestToSend":true, "dataTerminalReady":false}'></option>
+            <option value='{"requestToSend":false, "dataTerminalReady":true}'></option>
+            <option value='{"requestToSend":false, "dataTerminalReady":false}'></option>
+            <option value='{"break":true}'></option>
+            <option value='{"break":false}'></option>
+          </datalist>
+          <button id="set_signal_button" type="button">Set</button>
       <h3>PortDetail</h3>
         <pre id="port_store_result"></pre>
     </div>

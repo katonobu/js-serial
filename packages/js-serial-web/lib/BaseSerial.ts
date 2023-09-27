@@ -233,6 +233,17 @@ export class JsSerialBase{
             }
         }
     }
+    async setPort(id:portIdType, param: SerialOutputSignals, option:object = {}): Promise<string> {
+        try {
+            return await this._serial.setPort(this._idToObj[id].port, param, option)
+        }catch (e){
+            if (e instanceof Error){
+                return 'ERROR :'+e.toString()
+            } else {
+                throw e
+            }
+        }
+    }
     async closePort(id:portIdType):Promise<string> {
         try {
             const ret = await this._serial.closePort(this._idToObj[id].port)
